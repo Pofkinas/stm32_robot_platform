@@ -1,0 +1,7 @@
+# Untracked everything by default
+/*
+
+# Explicitly allow files
+!LICENSE
+!README.md
+!.gitignore
