@@ -1,0 +1,5 @@
+../Source/Driver/motor_driver.c:87:6:Motor_Driver_InitAllMotors	3
+../Source/Driver/motor_driver.c:101:6:Motor_Driver_EnableMotor	5
+../Source/Driver/motor_driver.c:123:6:Motor_Driver_DisableMotor	5
+../Source/Driver/motor_driver.c:145:6:Motor_Driver_SetSpeed	11
+../Source/Driver/motor_driver.c:189:6:Motor_Driver_GetMaxSpeed	3

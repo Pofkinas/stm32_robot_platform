@@ -1,0 +1,7 @@
+../Source/ThirdParty/Drivers/CMSIS/Include/core_cm4.h:1672:26:__NVIC_GetPriorityGrouping	1
+../Source/ThirdParty/Drivers/CMSIS/Include/core_cm4.h:1684:22:__NVIC_EnableIRQ	2
+../Source/ThirdParty/Drivers/CMSIS/Include/core_cm4.h:1814:22:__NVIC_SetPriority	2
+../Source/ThirdParty/Drivers/CMSIS/Include/core_cm4.h:1861:26:NVIC_EncodePriority	2
+../Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_bus.h:1704:22:LL_APB2_GRP1_EnableClock	1
+../Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_tim.h:1307:22:LL_TIM_DisableARRPreload	1
+../Source/ThirdParty/Core/Src/tim.c:28:6:MX_TIM10_Init	1

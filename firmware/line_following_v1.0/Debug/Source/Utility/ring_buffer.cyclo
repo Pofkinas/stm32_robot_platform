@@ -1,0 +1,6 @@
+../Source/Utility/ring_buffer.c:49:19:Ring_Buffer_Init	3
+../Source/Utility/ring_buffer.c:73:6:Ring_Buffer_DeInit	3
+../Source/Utility/ring_buffer.c:88:6:Ring_Buffer_IsFull	2
+../Source/Utility/ring_buffer.c:96:6:Ring_Buffer_IsEmpty	2
+../Source/Utility/ring_buffer.c:104:6:Ring_Buffer_Push	5
+../Source/Utility/ring_buffer.c:127:6:Ring_Buffer_Pop	6

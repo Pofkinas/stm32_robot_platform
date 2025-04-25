@@ -1,0 +1,6 @@
+../Source/API/uart_api.c:102:13:UART_API_FsmThread	32	static
+../Source/API/uart_api.c:160:13:UART_API_BufferIncrement	16	static
+../Source/API/uart_api.c:170:13:UART_API_IsDelimiterReceived	24	static
+../Source/API/uart_api.c:186:6:UART_API_Init	24	static
+../Source/API/uart_api.c:237:6:UART_API_Send	32	static
+../Source/API/uart_api.c:257:6:UART_API_Receive	24	static

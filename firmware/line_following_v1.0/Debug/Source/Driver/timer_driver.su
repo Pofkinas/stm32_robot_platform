@@ -1,0 +1,17 @@
+../Source/ThirdParty/Drivers/CMSIS/Include/core_cm4.h:1672:26:__NVIC_GetPriorityGrouping	4	static
+../Source/ThirdParty/Drivers/CMSIS/Include/core_cm4.h:1684:22:__NVIC_EnableIRQ	16	static,ignoring_inline_asm
+../Source/ThirdParty/Drivers/CMSIS/Include/core_cm4.h:1814:22:__NVIC_SetPriority	16	static
+../Source/ThirdParty/Drivers/CMSIS/Include/core_cm4.h:1861:26:NVIC_EncodePriority	40	static
+../Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_bus.h:1185:22:LL_APB1_GRP1_EnableClock	24	static
+../Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_bus.h:1704:22:LL_APB2_GRP1_EnableClock	24	static
+../Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_tim.h:1116:22:LL_TIM_EnableCounter	16	static
+../Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_tim.h:1127:22:LL_TIM_DisableCounter	16	static
+../Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_tim.h:1307:22:LL_TIM_DisableARRPreload	16	static
+../Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_tim.h:1451:26:LL_TIM_GetAutoReload	16	static
+../Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_tim.h:2694:22:LL_TIM_SetClockSource	16	static
+../Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_tim.h:2740:22:LL_TIM_SetTriggerOutput	16	static
+../Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_tim.h:2806:22:LL_TIM_DisableMasterSlaveMode	16	static
+../Source/Driver/timer_driver.c:122:6:Timer_Driver_InitAllTimers	40	static
+../Source/Driver/timer_driver.c:172:6:Timer_Driver_Start	16	static
+../Source/Driver/timer_driver.c:190:6:Timer_Driver_Stop	16	static
+../Source/Driver/timer_driver.c:208:10:Timer_Driver_GetResolution	16	static

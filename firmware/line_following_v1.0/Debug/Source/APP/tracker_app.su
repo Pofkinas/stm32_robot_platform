@@ -1,0 +1,4 @@
+../Source/APP/tracker_app.c:75:13:Tracker_APP_Thread	24	static
+../Source/APP/tracker_app.c:230:6:Tracker_APP_Process_Tcrt5000	16	static
+../Source/APP/tracker_app.c:267:6:Tracker_APP_Init	8	static
+../Source/APP/tracker_app.c:301:6:Tracker_APP_Add_Task	16	static

@@ -1,0 +1,10 @@
+../Source/API/tcrt5000_api.c:127:13:Tcrt5000_API_Thread	24	static
+../Source/API/tcrt5000_api.c:146:13:Tcrt5000_API_ExtiTriggered	24	static
+../Source/API/tcrt5000_api.c:159:13:Tcrt5000_API_DebounceTimerCallback	32	static
+../Source/API/tcrt5000_api.c:190:6:Tcrt5000_API_Init	24	static
+../Source/API/tcrt5000_api.c:229:6:Tcrt5000_API_Enable	24	static
+../Source/API/tcrt5000_api.c:251:6:Tcrt5000_API_Disable	24	static
+../Source/API/tcrt5000_api.c:273:6:Tcrt5000_API_GetData	24	static
+../Source/API/tcrt5000_api.c:289:6:Tcrt5000_API_ReadPinState	16	static
+../Source/API/tcrt5000_api.c:301:6:Tcrt5000_API_ClearTrigger	16	static
+../Source/API/tcrt5000_api.c:311:6:Tcrt5000_API_IsCorrectTcrt5000	16	static

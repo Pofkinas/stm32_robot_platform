@@ -1,0 +1,3 @@
+../Source/API/heap_api.c:51:6:Heap_API_Init	3
+../Source/API/heap_api.c:63:7:Heap_API_MemoryAllocate	5
+../Source/API/heap_api.c:85:6:Heap_API_Free	3

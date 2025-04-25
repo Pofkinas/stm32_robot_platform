@@ -1,0 +1,7 @@
+../Source/API/button_api.c:120:13:Button_API_Thread	24	static
+../Source/API/button_api.c:160:13:Button_API_ExtiTriggered	24	static
+../Source/API/button_api.c:179:13:Button_API_DebounceTimerCallback	24	static
+../Source/API/button_api.c:207:6:Button_API_Init	24	static
+../Source/API/button_api.c:239:6:Button_API_IsTriggered	16	static
+../Source/API/button_api.c:247:6:Button_API_ClearState	16	static
+../Source/API/button_api.c:257:6:Button_API_IsCorrectButton	16	static

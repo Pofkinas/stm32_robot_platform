@@ -1,0 +1,16 @@
+../Source/ThirdParty/Drivers/CMSIS/Include/core_cm4.h:1684:22:__NVIC_EnableIRQ	2
+../Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_bus.h:1185:22:LL_APB1_GRP1_EnableClock	1
+../Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_usart.h:410:22:LL_USART_Enable	1
+../Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_usart.h:435:26:LL_USART_IsEnabled	1
+../Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_usart.h:1479:22:LL_USART_ConfigAsyncMode	1
+../Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_usart.h:1792:26:LL_USART_IsActiveFlag_RXNE	1
+../Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_usart.h:1814:26:LL_USART_IsActiveFlag_TXE	1
+../Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_usart.h:2035:22:LL_USART_EnableIT_RXNE	2
+../Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_usart.h:2403:25:LL_USART_ReceiveData8	1
+../Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_usart.h:2426:22:LL_USART_TransmitData8	1
+../Source/Driver/uart_driver.c:93:13:UARTx_ISRHandler	4
+../Source/Driver/uart_driver.c:111:6:USART2_IRQHandler	1
+../Source/Driver/uart_driver.c:119:6:UART_Driver_Init	5
+../Source/Driver/uart_driver.c:161:6:UART_Driver_SendByte	4
+../Source/Driver/uart_driver.c:176:6:UART_Driver_SendBytes	6
+../Source/Driver/uart_driver.c:194:6:UART_Driver_ReceiveByte	4

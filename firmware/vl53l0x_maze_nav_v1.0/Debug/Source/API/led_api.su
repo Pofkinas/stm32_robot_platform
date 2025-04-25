@@ -1,0 +1,9 @@
+../Source/API/led_api.c:93:13:LED_API_Blink_Timer_Callback	24	static
+../Source/API/led_api.c:125:6:LED_API_Init	24	static
+../Source/API/led_api.c:149:6:LED_API_TurnOn	16	static
+../Source/API/led_api.c:161:6:LED_API_TurnOff	16	static
+../Source/API/led_api.c:173:6:LED_API_Toggle	16	static
+../Source/API/led_api.c:185:6:LED_API_Blink	16	static
+../Source/API/led_api.c:220:6:LED_API_IsCorrectLed	16	static
+../Source/API/led_api.c:224:6:LED_API_IsCorrectBlinkTime	16	static
+../Source/API/led_api.c:228:6:LED_API_IsCorrectBlinkFrequency	16	static

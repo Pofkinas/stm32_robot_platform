@@ -1,0 +1,11 @@
+../Source/ThirdParty/Drivers/CMSIS/Include/core_cm4.h:1672:26:__NVIC_GetPriorityGrouping	1
+../Source/ThirdParty/Drivers/CMSIS/Include/core_cm4.h:1684:22:__NVIC_EnableIRQ	2
+../Source/ThirdParty/Drivers/CMSIS/Include/core_cm4.h:1814:22:__NVIC_SetPriority	2
+../Source/ThirdParty/Drivers/CMSIS/Include/core_cm4.h:1861:26:NVIC_EncodePriority	2
+../Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_i2c.h:568:22:LL_I2C_EnableClockStretching	1
+../Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_i2c.h:615:22:LL_I2C_DisableGeneralCall	1
+../Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_i2c.h:657:22:LL_I2C_SetOwnAddress2	1
+../Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_i2c.h:679:22:LL_I2C_DisableOwnAddress2	1
+../Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_bus.h:409:22:LL_AHB1_GRP1_EnableClock	1
+../Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_bus.h:1185:22:LL_APB1_GRP1_EnableClock	1
+../Source/ThirdParty/Core/Src/i2c.c:28:6:MX_I2C1_Init	1

@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "heap_api.h": "c",
+        "stm32f4xx_ll_gpio.h": "c",
+        "gpio_driver.h": "c"
+    }
+}

@@ -1,0 +1,50 @@
+{
+    "configurations": [
+      {
+        "name": "STM32",
+        "includePath": [
+          "${workspaceFolder}/Source/ThirdParty/Core/Inc",
+          "${workspaceFolder}/Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc",
+          "${workspaceFolder}/Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy",
+          "${workspaceFolder}/Source/ThirdParty/Middlewares/Third_Party/FreeRTOS/Source/include",
+          "${workspaceFolder}/Source/ThirdParty/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2",
+          "${workspaceFolder}/Source/ThirdParty/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F",
+          "${workspaceFolder}/Source/ThirdParty/Drivers/CMSIS/Device/ST/STM32F4xx/Include",
+          "${workspaceFolder}/Source/ThirdParty/Drivers/CMSIS/Include",
+          "${workspaceFolder}/Source/API",
+          "${workspaceFolder}/Source/APP",
+          "${workspaceFolder}/Source/Driver",
+          "${workspaceFolder}/Source/Utility"
+        ],
+        "browse": {
+            "path": [
+                "${workspaceFolder}/Source/ThirdParty/Core/Inc",
+                "${workspaceFolder}/Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc",
+                "${workspaceFolder}/Source/ThirdParty/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy",
+                "${workspaceFolder}/Source/ThirdParty/Middlewares/Third_Party/FreeRTOS/Source/include",
+                "${workspaceFolder}/Source/ThirdParty/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2",
+                "${workspaceFolder}/Source/ThirdParty/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F",
+                "${workspaceFolder}/Source/ThirdParty/Drivers/CMSIS/Device/ST/STM32F4xx/Include",
+                "${workspaceFolder}/Source/ThirdParty/Drivers/CMSIS/Include",
+                "${workspaceFolder}/Source/API",
+                "${workspaceFolder}/Source/APP",
+                "${workspaceFolder}/Source/Driver",
+                "${workspaceFolder}/Source/Utility"
+            ],
+            "limitSymbolsToIncludedHeaders": true
+        },
+        "defines": [
+          "DEBUG",
+          "USE_FULL_LL_DRIVER",
+          "STM32F411xE",
+          "USE_HAL_DRIVER"
+        ],
+        "compilerPath": "C:/ST/STM32CubeIDE_1.17.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.12.3.rel1.win32_1.1.0.202410251130/tools/bin/arm-none-eabi-gcc.exe",
+        "cStandard": "c11",
+        "cppStandard": "c++17",
+        "intelliSenseMode": "gcc-arm"
+      }
+    ],
+    "version": 4
+}
+  

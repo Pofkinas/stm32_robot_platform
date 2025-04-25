@@ -1,0 +1,3 @@
+../Source/APP/motor_app.c:70:13:Motor_APP_Thread	10
+../Source/APP/motor_app.c:144:6:Motor_APP_Init	5
+../Source/APP/motor_app.c:166:6:Motor_APP_Add_Task	4

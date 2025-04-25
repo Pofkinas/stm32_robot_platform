@@ -1,0 +1,16 @@
+../Source/API/led_api.c:124:13:LED_API_Blink_Timer_Callback	4
+../Source/API/led_api.c:152:13:LED_API_Pulse_timer_Callback	7
+../Source/API/led_api.c:197:6:LED_API_Init	11
+../Source/API/led_api.c:239:6:LED_API_TurnOn	3
+../Source/API/led_api.c:251:6:LED_API_TurnOff	3
+../Source/API/led_api.c:263:6:LED_API_Toggle	3
+../Source/API/led_api.c:275:6:LED_API_Blink	7
+../Source/API/led_api.c:310:6:LED_API_Set_Brightness	4
+../Source/API/led_api.c:326:6:LED_API_Pulse	7
+../Source/API/led_api.c:368:6:LED_API_IsCorrectLed	1
+../Source/API/led_api.c:372:6:LED_API_IsCorrectBlinkTime	3
+../Source/API/led_api.c:376:6:LED_API_IsCorrectBlinkFrequency	3
+../Source/API/led_api.c:380:6:LED_API_IsCorrectPwmLed	1
+../Source/API/led_api.c:384:6:LED_API_IsCorrectDutyCycle	1
+../Source/API/led_api.c:388:6:LED_API_IsCorrectPulseTime	3
+../Source/API/led_api.c:392:6:LED_API_IsCorrectPulseFrequency	3

@@ -1,0 +1,5 @@
+../Source/Driver/motor_driver.c:87:6:Motor_Driver_InitAllMotors	24	static
+../Source/Driver/motor_driver.c:101:6:Motor_Driver_EnableMotor	16	static
+../Source/Driver/motor_driver.c:123:6:Motor_Driver_DisableMotor	16	static
+../Source/Driver/motor_driver.c:145:6:Motor_Driver_SetSpeed	16	static
+../Source/Driver/motor_driver.c:189:6:Motor_Driver_GetMaxSpeed	16	static

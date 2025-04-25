@@ -1,0 +1,10 @@
+../Source/API/motor_api.c:143:17:Motor_API_Scale_Speed	24	static
+../Source/API/motor_api.c:165:13:Motor_API_SetMotorSpeed	16	static
+../Source/API/motor_api.c:212:13:Motor_API_Statup_TimerCallback	24	static
+../Source/API/motor_api.c:224:6:Motor_API_Init	24	static
+../Source/API/motor_api.c:264:6:Motor_API_SetSpeed	32	static
+../Source/API/motor_api.c:316:6:Motor_API_StopAllMotors	24	static
+../Source/API/motor_api.c:332:6:Motor_API_DisableAllMotors	16	static
+../Source/API/motor_api.c:348:6:Motor_API_IsCorrectDirection	16	static
+../Source/API/motor_api.c:352:6:Motor_API_IsCorrectSpeed	16	static
+../Source/API/motor_api.c:356:6:Motor_API_IsMotorEnabled	16	static
