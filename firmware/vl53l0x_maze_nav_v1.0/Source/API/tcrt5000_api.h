@@ -1,11 +1,10 @@
-#ifndef SOURCE_APP_CLI_CMD_HANDLERS_H_
-#define SOURCE_APP_CLI_CMD_HANDLERS_H_
+#ifndef SOURCE_API_TCRT5000_API_H_
+#define SOURCE_API_TCRT5000_API_H_
 /**********************************************************************************************************************
  * Includes
  *********************************************************************************************************************/
 
 #include <stdbool.h>
-#include "message.h"
 
 /**********************************************************************************************************************
  * Exported definitions and macros
@@ -15,6 +14,20 @@
  * Exported types
  *********************************************************************************************************************/
 
+/* clang-format off */
+typedef enum eTcrt5000 {
+    eTcrt5000_First = 0,
+    eTcrt5000_Main = eTcrt5000_First,
+    eTcrt5000_Last
+} eTcrt5000_t;
+
+typedef struct sTcrt5000Data {
+    eTcrt5000_t device;
+    bool is_tiggered;
+    bool pin_state;
+} sTcrt5000Data_t;
+/* clang-format on */
+
 /**********************************************************************************************************************
  * Exported variables
  *********************************************************************************************************************/
@@ -23,15 +36,12 @@
  * Prototypes of exported functions
  *********************************************************************************************************************/
 
-bool CLI_APP_Led_Handlers_Set (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Led_Handlers_Reset (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Led_Handlers_Toggle (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Led_Handlers_Blink (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Pwm_Led_Handlers_Set_Brightness (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Pwm_Led_Handlers_Pulse (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Motors_Handlers_Stop (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Motors_Handlers_Set (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Tracker_Handlers_Start (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Tracker_Handlers_Stop (sMessage_t arguments, sMessage_t *response);
+bool Tcrt5000_API_Init (void);
+bool Tcrt5000_API_Enable (void);
+bool Tcrt5000_API_Disable (void);
+bool Tcrt5000_API_GetData (sTcrt5000Data_t *data);
+bool Tcrt5000_API_ReadPinState (const eTcrt5000_t device, bool *pin_state);
+bool Tcrt5000_API_ClearTrigger (const eTcrt5000_t device);
+bool Tcrt5000_API_IsCorrectTcrt5000 (const eTcrt5000_t device);
 
-#endif /* SOURCE_APP_CLI_APP_HANDLERS_H_ */
+#endif /* SOURCE_API_TCRT5000_API_H_ */
