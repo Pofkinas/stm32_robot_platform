@@ -1,11 +1,12 @@
-#ifndef SOURCE_APP_CLI_CMD_HANDLERS_H_
-#define SOURCE_APP_CLI_CMD_HANDLERS_H_
+#ifndef SOURCE_APP_MOTOR_APP_H_
+#define SOURCE_APP_MOTOR_APP_H_
 /**********************************************************************************************************************
  * Includes
  *********************************************************************************************************************/
 
 #include <stdbool.h>
-#include "message.h"
+#include <stdint.h>
+#include "motor_api.h"
 
 /**********************************************************************************************************************
  * Exported definitions and macros
@@ -15,6 +16,25 @@
  * Exported types
  *********************************************************************************************************************/
 
+/* clang-format off */
+typedef enum eMotorTask {
+    eMotorTask_First,
+    eMotorTask_Set = eMotorTask_First,
+    eMotorTask_Stop,
+    eMotorTask_Last
+} eMotorTask_t;
+
+typedef struct sMotorCommandDesc {
+    eMotorTask_t task;
+    void *data;
+} sMotorCommandDesc_t;
+
+typedef struct sMotorSet {
+    uint8_t speed;
+    eMotorDirection_t direction;
+} sMotorSet_t;
+/* clang-format on */
+
 /**********************************************************************************************************************
  * Exported variables
  *********************************************************************************************************************/
@@ -23,15 +43,7 @@
  * Prototypes of exported functions
  *********************************************************************************************************************/
 
-bool CLI_APP_Led_Handlers_Set (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Led_Handlers_Reset (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Led_Handlers_Toggle (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Led_Handlers_Blink (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Pwm_Led_Handlers_Set_Brightness (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Pwm_Led_Handlers_Pulse (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Motors_Handlers_Stop (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Motors_Handlers_Set (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Tracker_Handlers_Start (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Tracker_Handlers_Stop (sMessage_t arguments, sMessage_t *response);
+bool Motor_APP_Init (void);
+bool Motor_APP_Add_Task (sMotorCommandDesc_t *task_to_message_queue);
 
-#endif /* SOURCE_APP_CLI_APP_HANDLERS_H_ */
+#endif /* SOURCE_APP_MOTOR_APP_H_ */
