@@ -269,6 +269,30 @@ bool I2C_Driver_ReadByte (const eI2cDriver_t i2c, uint8_t *data) {
     return true;
 }
 
+bool I2C_Driver_ReadByteAck (const eI2cDriver_t i2c, uint8_t *data, const bool ack) {
+    if ((i2c < eI2cDriver_First) || (i2c >= eI2cDriver_Last)) {
+        return false;
+    }
+
+    if (!g_is_i2c_init[i2c]) {
+        return false;
+    }
+
+    if (data == NULL) {
+        return false;
+    }
+
+    *data = LL_I2C_ReceiveData8(g_static_i2c_lut[i2c].periph);
+
+    if (ack) {
+        LL_I2C_AcknowledgeNextData(g_static_i2c_lut[i2c].periph, LL_I2C_ACK);
+    } else {
+        LL_I2C_AcknowledgeNextData(g_static_i2c_lut[i2c].periph, LL_I2C_NACK);
+    }
+
+    return true;
+}
+
 bool I2C_Driver_CheckFlag (const eI2cDriver_t i2c, const eI2cDriver_Flags_t flag) {
     if ((i2c < eI2cDriver_First) || (i2c >= eI2cDriver_Last)) {
         return false;

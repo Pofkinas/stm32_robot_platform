@@ -55,6 +55,7 @@ bool I2C_Driver_SendDeviceAddress (const eI2cDriver_t i2c, const uint8_t address
 bool I2C_Driver_SendMemAddress (const eI2cDriver_t i2c, const uint16_t mem_address, const uint8_t mem_address_size);
 bool I2C_Driver_SendByte (const eI2cDriver_t i2c, const uint8_t data);
 bool I2C_Driver_ReadByte (const eI2cDriver_t i2c, uint8_t *data);
+bool I2C_Driver_ReadByteAck (const eI2cDriver_t i2c, uint8_t *data, const bool ack);
 bool I2C_Driver_CheckFlag (const eI2cDriver_t i2c, const eI2cDriver_Flags_t flag);
 void I2C_Driver_ClearFlag (const eI2cDriver_t i2c, const eI2cDriver_Flags_t flag);
 void I2C_Driver_ResetLine (const eI2cDriver_t i2c);
