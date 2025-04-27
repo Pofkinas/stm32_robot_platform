@@ -3,7 +3,7 @@
  *********************************************************************************************************************/
 
 #include "i2c_api.h"
-#include "cmsis_os.h"
+#include "cmsis_os2.h"
 #include "i2c_driver.h"
 
 /**********************************************************************************************************************
@@ -173,20 +173,14 @@ static bool I2C_API_ReadMultiBytes (const eI2cDriver_t i2c, uint8_t *data, const
             return false;
         }
 
-        if (!I2C_Driver_ReadByte(g_static_i2c_lut[i2c].i2c_driver, &data[bytes_to_read - remaining_bytes])) {
-            I2C_Driver_StopComms(g_static_i2c_lut[i2c].i2c_driver);
+        if (remaining_bytes > 2){
+            if (!I2C_Driver_ReadByteAck (g_static_i2c_lut[i2c].i2c_driver, &data[bytes_to_read - remaining_bytes], true)) {
+                I2C_Driver_StopComms(g_static_i2c_lut[i2c].i2c_driver);
 
-            return false;
-        }
-
-        if (!I2C_Driver_Acknowledge(g_static_i2c_lut[i2c].i2c_driver, true)) {
-            I2C_Driver_StopComms(g_static_i2c_lut[i2c].i2c_driver);
-
-            return false;
-        }
-
-        if (remaining_bytes == 2) {
-            if (!I2C_Driver_Acknowledge(g_static_i2c_lut[i2c].i2c_driver, false)) {
+                return false;
+            }
+        } else if (remaining_bytes == 2) {
+            if (!I2C_Driver_ReadByteAck (g_static_i2c_lut[i2c].i2c_driver, &data[bytes_to_read - remaining_bytes], false)) {
                 I2C_Driver_StopComms(g_static_i2c_lut[i2c].i2c_driver);
 
                 return false;
@@ -195,7 +189,39 @@ static bool I2C_API_ReadMultiBytes (const eI2cDriver_t i2c, uint8_t *data, const
             if (!I2C_Driver_StopComms(g_static_i2c_lut[i2c].i2c_driver)) {
                 return false;
             }
+        } else {
+            if (!I2C_Driver_ReadByte(g_static_i2c_lut[i2c].i2c_driver, &data[bytes_to_read - remaining_bytes])) {
+                I2C_Driver_StopComms(g_static_i2c_lut[i2c].i2c_driver);
+    
+                return false;
+            }
         }
+        
+        // if (!I2C_Driver_ReadByte(g_static_i2c_lut[i2c].i2c_driver, &data[bytes_to_read - remaining_bytes])) {
+        //     I2C_Driver_StopComms(g_static_i2c_lut[i2c].i2c_driver);
+
+        //     return false;
+        // }
+
+        // if (remaining_bytes > 2){
+        //     if (!I2C_Driver_Acknowledge(g_static_i2c_lut[i2c].i2c_driver, true)) {
+        //         I2C_Driver_StopComms(g_static_i2c_lut[i2c].i2c_driver);
+
+        //         return false;
+        //     }
+        // }
+
+        // if (remaining_bytes == 2) {
+        //     if (!I2C_Driver_Acknowledge(g_static_i2c_lut[i2c].i2c_driver, false)) {
+        //         I2C_Driver_StopComms(g_static_i2c_lut[i2c].i2c_driver);
+
+        //         return false;
+        //     }
+
+        //     if (!I2C_Driver_StopComms(g_static_i2c_lut[i2c].i2c_driver)) {
+        //         return false;
+        //     }
+        // }
 
         remaining_bytes--;
     }
