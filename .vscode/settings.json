@@ -10,6 +10,11 @@
         "timer_driver.h": "c",
         "i2c_api.h": "c",
         "message.h": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "vl53l0x_api.h": "c",
+        "vl53l0x_def.h": "c",
+        "i2c_driver.h": "c",
+        "cmsis_os.h": "c",
+        "vl53l0x_i2c_platform.h": "c"
     }
 }

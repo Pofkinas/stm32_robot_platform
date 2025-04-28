@@ -140,6 +140,16 @@ const static sGpioDesc_t g_static_gpio_lut[eGpioPin_Last] = {
         .output = LL_GPIO_OUTPUT_OPENDRAIN,
         .clock = LL_AHB1_GRP1_PERIPH_GPIOB,
         .alternate = LL_GPIO_AF_4
+    },
+    [eGpioPin_vl53l0_Xshut_1] = {
+        .port = GPIOC,
+        .pin = LL_GPIO_PIN_13,
+        .mode = LL_GPIO_MODE_OUTPUT,
+        .speed = LL_GPIO_SPEED_FREQ_LOW,
+        .pull = LL_GPIO_PULL_NO,
+        .output = LL_GPIO_OUTPUT_PUSHPULL,
+        .clock = LL_AHB1_GRP1_PERIPH_GPIOC,
+        .alternate = LL_GPIO_AF_0
     }
 };
 /* clang-format on */

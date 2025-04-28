@@ -22,6 +22,8 @@ typedef struct sI2cStaticDesc {
 
 typedef struct sI2cDynamicDesc {
     bool is_init;
+    uint8_t data;
+    size_t data_size; 
 } sI2cDynamicDesc_t;
 
 /**********************************************************************************************************************

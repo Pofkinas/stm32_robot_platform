@@ -56,6 +56,8 @@
 									<listOptionValue builtIn="false" value="../Source/APP"/>
 									<listOptionValue builtIn="false" value="../Source/Driver"/>
 									<listOptionValue builtIn="false" value="../Source/Utility"/>
+									<listOptionValue builtIn="false" value="../Source/ThirdParty/VL53L0X/core/inc"/>
+									<listOptionValue builtIn="false" value="../Source/ThirdParty/VL53L0X/platform/inc"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c.126116844" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c"/>
 							</tool>
@@ -81,8 +83,11 @@
 							<tool id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.objcopy.symbolsrec.218013932" name="MCU Output Converter Motorola S-rec with symbols" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.objcopy.symbolsrec"/>
 						</toolChain>
 					</folderInfo>
+					<fileInfo id="com.st.stm32cube.ide.mcu.gnu.managedbuild.config.exe.debug.1247719541.1164798601" name="vl53l0x_i2c_platform.h" rcbsApplicability="disable" resourcePath="Source/ThirdParty/VL53L0X/platform/inc/vl53l0x_i2c_platform.h" toolsToInvoke=""/>
+					<fileInfo id="com.st.stm32cube.ide.mcu.gnu.managedbuild.config.exe.debug.1247719541.1101311561" name="vl53l0x_types.h" rcbsApplicability="disable" resourcePath="Source/ThirdParty/VL53L0X/platform/inc/vl53l0x_types.h" toolsToInvoke=""/>
+					<fileInfo id="com.st.stm32cube.ide.mcu.gnu.managedbuild.config.exe.debug.1247719541.1333661422" name="vl53l0x_platform_log.h" rcbsApplicability="disable" resourcePath="Source/ThirdParty/VL53L0X/platform/inc/vl53l0x_platform_log.h" toolsToInvoke=""/>
 					<sourceEntries>
-						<entry excluding="Source/ThirdParty/VL53L0X|Source/ThirdParty/Core/Src/main.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="Source/ThirdParty/VL53L0X/platform/inc/vl53l0x_types.h|Source/ThirdParty/VL53L0X/platform/inc/vl53l0x_platform_log.h|Source/ThirdParty/VL53L0X/platform/inc/vl53l0x_i2c_platform.h|Source/ThirdParty/VL53L0X/platform/src/vl53l0x_platform_log.c|Source/ThirdParty/VL53L0X/platform/src/vl53l0x_i2c_platform.c|Source/ThirdParty/VL53L0X/platform/src/vl53l0x_i2c_win_serial_comms.c|Source/ThirdParty/Core/Src/main.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
