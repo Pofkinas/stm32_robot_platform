@@ -94,8 +94,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VL53L0X_GetI2CAccess(Dev)    /* todo mutex acquire */
 #define VL53L0X_DoneI2CAcces(Dev)    /* todo mutex release */
 
-#define VL53L0X_I2C_WRITE_TIMEOUT_US 1000   /* 2ms */
-#define VL53L0X_I2C_READ_TIMEOUT_US  1500   /* 2ms */
+#define VL53L0X_I2C_WRITE_TIMEOUT_US 5500   /* 7ms */
+#define VL53L0X_I2C_READ_TIMEOUT_US  5500   /* 8ms */
 #define IC2_PHERIPH eI2c_1
 
 VL53L0X_Error VL53L0X_LockSequenceAccess(VL53L0X_DEV Dev){

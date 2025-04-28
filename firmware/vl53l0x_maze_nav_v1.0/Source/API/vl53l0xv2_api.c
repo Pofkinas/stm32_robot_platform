@@ -62,7 +62,7 @@ CREATE_MODULE_NAME (VL53L0XV2_API)
 static const sVl53l0xStaticDesc_t g_static_vl53l0x_lut[eVl53l0x_Last] = {
     [eVl53l0x_1] = {
         .i2c = eI2c_1,
-        .i2c_address = 0x63,
+        .i2c_address = 0x29,
         .offset = 0,
         .crosstalk_talk_compensation_en = 0,
         .crosstalk_value = 0.0f * 65536,
@@ -208,11 +208,11 @@ bool VL53L0X_API_Init (const eVl53l0x_t vl53l0x) {
         return false;
     }
 
-    if (VL53L0X_SetDeviceAddress(&g_dynamic_vl53l0x[vl53l0x].device, g_static_vl53l0x_lut[vl53l0x].i2c_address) != VL53L0X_ERROR_NONE) {
-        return false;
-    }
-
-    g_dynamic_vl53l0x[vl53l0x].device.I2cDevAddr = g_static_vl53l0x_lut[vl53l0x].i2c_address;
+//    if (VL53L0X_SetDeviceAddress(&g_dynamic_vl53l0x[vl53l0x].device, g_static_vl53l0x_lut[vl53l0x].i2c_address) != VL53L0X_ERROR_NONE) {
+//        return false;
+//    }
+//
+//    g_dynamic_vl53l0x[vl53l0x].device.I2cDevAddr = g_static_vl53l0x_lut[vl53l0x].i2c_address;
 
     if (!g_dynamic_vl53l0x[vl53l0x].is_calib_default_data) {
         if (VL53L0X_PerformRefSpadManagement(&g_dynamic_vl53l0x[vl53l0x].device, &g_dynamic_vl53l0x[vl53l0x].calib_SpadCount, &g_dynamic_vl53l0x[vl53l0x].calib_isApertureSpads) != VL53L0X_ERROR_NONE) {
