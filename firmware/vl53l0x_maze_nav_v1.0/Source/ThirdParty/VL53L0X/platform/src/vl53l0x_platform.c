@@ -94,8 +94,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VL53L0X_GetI2CAccess(Dev)    /* todo mutex acquire */
 #define VL53L0X_DoneI2CAcces(Dev)    /* todo mutex release */
 
-#define VL53L0X_I2C_WRITE_TIMEOUT_US 5000   /* 5ms */
-#define VL53L0X_I2C_READ_TIMEOUT_US  5000   /* 5ms */
+#define VL53L0X_I2C_WRITE_TIMEOUT_US 1000   /* 2ms */
+#define VL53L0X_I2C_READ_TIMEOUT_US  1500   /* 2ms */
 #define IC2_PHERIPH eI2c_1
 
 VL53L0X_Error VL53L0X_LockSequenceAccess(VL53L0X_DEV Dev){
@@ -118,10 +118,10 @@ VL53L0X_Error VL53L0X_WriteMulti(VL53L0X_DEV Dev, uint8_t index, uint8_t *pdata,
 	uint8_t deviceAddress;
 
     if (count>=VL53L0X_MAX_I2C_XFER_SIZE){
-        Status = VL53L0X_ERROR_INVALID_PARAMS;
+        return VL53L0X_ERROR_INVALID_PARAMS;
     }
 
-	deviceAddress = ((VL53L0X_Dev_t*)Dev)->I2cDevAddr;
+	deviceAddress = Dev->I2cDevAddr;
 
 	status_int = (uint8_t) I2C_API_Write(IC2_PHERIPH, deviceAddress, pdata, count, index, sizeof(index), VL53L0X_I2C_WRITE_TIMEOUT_US * count);
     
@@ -138,16 +138,20 @@ VL53L0X_Error VL53L0X_ReadMulti(VL53L0X_DEV Dev, uint8_t index, uint8_t *pdata, 
     int32_t status_int;
 	uint8_t deviceAddress;
 
+    uint8_t Buffer[VL53L0X_MAX_I2C_XFER_SIZE];
+
     if (count>=VL53L0X_MAX_I2C_XFER_SIZE){
-        Status = VL53L0X_ERROR_INVALID_PARAMS;
+        return VL53L0X_ERROR_INVALID_PARAMS;
     }
 
-    deviceAddress = ((VL53L0X_Dev_t*)Dev)->I2cDevAddr;
+    deviceAddress = Dev->I2cDevAddr;
 
-	status_int = (uint8_t) I2C_API_Read(IC2_PHERIPH, deviceAddress, pdata, count, index, sizeof(index), VL53L0X_I2C_READ_TIMEOUT_US * count);
+	status_int = (uint8_t) I2C_API_Read(IC2_PHERIPH, deviceAddress, Buffer, count, index, sizeof(index), VL53L0X_I2C_READ_TIMEOUT_US * count);
 
 	if (status_int != 1)
-		Status = VL53L0X_ERROR_CONTROL_INTERFACE;
+		return VL53L0X_ERROR_CONTROL_INTERFACE;
+
+    memcpy(pdata, Buffer, count);
 
     return Status;
 }
@@ -157,7 +161,7 @@ VL53L0X_Error VL53L0X_WrByte(VL53L0X_DEV Dev, uint8_t index, uint8_t data){
     VL53L0X_Error Status = VL53L0X_ERROR_NONE;
     int32_t status_int;
 
-	status_int = VL53L0X_WriteMulti(Dev, index, &data, sizeof(data));
+	status_int = VL53L0X_WriteMulti(Dev, index, &data, 1);
 
 	if (status_int != 0)
 		Status = VL53L0X_ERROR_CONTROL_INTERFACE;
@@ -169,11 +173,11 @@ VL53L0X_Error VL53L0X_WrWord(VL53L0X_DEV Dev, uint8_t index, uint16_t data){
     VL53L0X_Error Status = VL53L0X_ERROR_NONE;
     int32_t status_int;
 
-    uint8_t dataBuffer[2];
-    dataBuffer[0] = (uint8_t)(data >> 8);
-    dataBuffer[1] = (uint8_t)(data & 0x00FF);
+    uint8_t buffer[2];
+    buffer[0] = (uint8_t)(data >> 8);
+    buffer[1] = (uint8_t)(data & 0x00FF);
 
-	status_int = VL53L0X_WriteMulti(Dev, index, dataBuffer, BYTES_PER_WORD);
+	status_int = VL53L0X_WriteMulti(Dev, index, buffer, BYTES_PER_WORD);
 
 	if (status_int != 0)
 		Status = VL53L0X_ERROR_CONTROL_INTERFACE;
@@ -185,13 +189,13 @@ VL53L0X_Error VL53L0X_WrDWord(VL53L0X_DEV Dev, uint8_t index, uint32_t data){
     VL53L0X_Error Status = VL53L0X_ERROR_NONE;
     int32_t status_int;
 
-    uint8_t dataBuffer[4];
-    dataBuffer[0] = (uint8_t) (data >> 24);
-    dataBuffer[1] = (uint8_t)((data & 0x00FF0000) >> 16);
-    dataBuffer[2] = (uint8_t)((data & 0x0000FF00) >> 8);
-    dataBuffer[3] = (uint8_t) (data & 0x000000FF);
+    uint8_t buffer[4];
+    buffer[0] = (uint8_t) (data >> 24);
+    buffer[1] = (uint8_t)((data & 0x00FF0000) >> 16);
+    buffer[2] = (uint8_t)((data & 0x0000FF00) >> 8);
+    buffer[3] = (uint8_t) (data & 0x000000FF);
 
-	status_int = VL53L0X_WriteMulti(Dev, index, dataBuffer, BYTES_PER_DWORD);
+	status_int = VL53L0X_WriteMulti(Dev, index, buffer, BYTES_PER_DWORD);
 
 	if (status_int != 0)
 		Status = VL53L0X_ERROR_CONTROL_INTERFACE;
@@ -204,14 +208,14 @@ VL53L0X_Error VL53L0X_UpdateByte(VL53L0X_DEV Dev, uint8_t index, uint8_t AndData
     int32_t status_int;
     uint8_t data;
 
-    status_int = VL53L0X_ReadMulti(Dev, index, &data, sizeof(data));
+    status_int = VL53L0X_ReadMulti(Dev, index, &data, 1);
 
     if (status_int != 0)
         Status = VL53L0X_ERROR_CONTROL_INTERFACE;
 
     if (Status == VL53L0X_ERROR_NONE) {
         data = (data & AndData) | OrData;
-        status_int = VL53L0X_WriteMulti(Dev, index, &data, sizeof(data));
+        status_int = VL53L0X_WriteMulti(Dev, index, &data, 1);
 
         if (status_int != 0)
             Status = VL53L0X_ERROR_CONTROL_INTERFACE;
@@ -224,7 +228,7 @@ VL53L0X_Error VL53L0X_RdByte(VL53L0X_DEV Dev, uint8_t index, uint8_t *data){
     VL53L0X_Error Status = VL53L0X_ERROR_NONE;
     int32_t status_int;
 
-    status_int = VL53L0X_ReadMulti(Dev, index, data, sizeof(data));
+    status_int = VL53L0X_ReadMulti(Dev, index, data, 1);
 
     if (status_int != 0)
         Status = VL53L0X_ERROR_CONTROL_INTERFACE;
@@ -236,14 +240,14 @@ VL53L0X_Error VL53L0X_RdWord(VL53L0X_DEV Dev, uint8_t index, uint16_t *data){
     VL53L0X_Error Status = VL53L0X_ERROR_NONE;
     int32_t status_int;
 
-    uint8_t dataBuffer[2];
+    uint8_t buffer[2];
 
-    status_int = VL53L0X_ReadMulti(Dev, index, dataBuffer, BYTES_PER_WORD);
+    status_int = VL53L0X_ReadMulti(Dev, index, buffer, BYTES_PER_WORD);
 
     if (status_int != 0)
         Status = VL53L0X_ERROR_CONTROL_INTERFACE;
 
-    *data = (uint16_t)((dataBuffer[0] << 8) | dataBuffer[1]);
+    *data = (uint16_t)((buffer[0] << 8) | buffer[1]);
 
     return Status;
 }
@@ -252,14 +256,14 @@ VL53L0X_Error  VL53L0X_RdDWord(VL53L0X_DEV Dev, uint8_t index, uint32_t *data){
     VL53L0X_Error Status = VL53L0X_ERROR_NONE;
     int32_t status_int;
 
-    uint8_t dataBuffer[4];
+    uint8_t buffer[4];
 
-    status_int = VL53L0X_ReadMulti(Dev, index, dataBuffer, BYTES_PER_DWORD);
+    status_int = VL53L0X_ReadMulti(Dev, index, buffer, BYTES_PER_DWORD);
 
     if (status_int != 0)
         Status = VL53L0X_ERROR_CONTROL_INTERFACE;
 
-    *data = (uint32_t)((dataBuffer[0] << 24) | (dataBuffer[1] << 16) | (dataBuffer[2] << 8) | dataBuffer[3]);
+    *data = (uint32_t)((buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3]);
 
     return Status;
 }

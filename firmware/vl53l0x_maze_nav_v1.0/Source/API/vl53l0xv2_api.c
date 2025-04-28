@@ -82,7 +82,7 @@ static uint32_t g_timeout_multiplier = 0;
 /* clang-format off */
 static sVl53l0xDynamicDesc_t g_dynamic_vl53l0x[eVl53l0x_Last] = {
     [eVl53l0x_1] = {
-        .device = {.I2cDevAddr = VL53L0X_DEFAULT_ADDRESS},
+        .device = {.I2cDevAddr = VL53L0X_DEFAULT_ADDRESS, .comms_type = I2C, .comms_speed_khz = 100},
         .is_init = false,
         .is_enabled = false,
         .is_calib_default_data = false,
@@ -188,9 +188,17 @@ bool VL53L0X_API_Init (const eVl53l0x_t vl53l0x) {
         return false;
     }
 
+    if (!GPIO_Driver_WritePin(g_static_vl53l0x_lut[vl53l0x].xshut_pin, false)) {
+        return false;
+    }
+
+    osDelay(2);
+
     if (!GPIO_Driver_WritePin(g_static_vl53l0x_lut[vl53l0x].xshut_pin, true)) {
         return false;
-    }  
+    }
+
+    osDelay(5);
 
     if (VL53L0X_DataInit(&g_dynamic_vl53l0x[vl53l0x].device) != VL53L0X_ERROR_NONE) {
         return false;
