@@ -1,19 +1,32 @@
-#ifndef SOURCE_APP_CLI_CMD_HANDLERS_H_
-#define SOURCE_APP_CLI_CMD_HANDLERS_H_
+#ifndef SOURCE_APP_TRACKER_APP_H_
+#define SOURCE_APP_TRACKER_APP_H_
 /**********************************************************************************************************************
  * Includes
  *********************************************************************************************************************/
 
 #include <stdbool.h>
-#include "message.h"
 
 /**********************************************************************************************************************
  * Exported definitions and macros
  *********************************************************************************************************************/
 
+#define TRACKER_COMMAND_MESSAGE_CAPACITY 20
+
 /**********************************************************************************************************************
  * Exported types
  *********************************************************************************************************************/
+
+/* clang-format off */
+typedef enum  eTrackerTask {
+    eTrackerTask_First = 0,
+    eTrackerTask_Collect = eTrackerTask_First,
+    eTrackerTask_Start,
+    eTrackerTask_Stop,
+    eTrackerTask_FallowLine,
+    eTrackerTask_SearchLine,
+    eTrackerTask_Last
+} eTrackerTask_t;
+/* clang-format on */
 
 /**********************************************************************************************************************
  * Exported variables
@@ -23,15 +36,7 @@
  * Prototypes of exported functions
  *********************************************************************************************************************/
 
-bool CLI_APP_Led_Handlers_Set (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Led_Handlers_Reset (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Led_Handlers_Toggle (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Led_Handlers_Blink (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Pwm_Led_Handlers_Set_Brightness (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Pwm_Led_Handlers_Pulse (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Motors_Handlers_Stop (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Motors_Handlers_Set (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Tracker_Handlers_Start (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Tracker_Handlers_Stop (sMessage_t arguments, sMessage_t *response);
+bool Tracker_APP_Init (void);
+bool Tracker_APP_Add_Task (eTrackerTask_t task_to_message_queque);
 
-#endif /* SOURCE_APP_CLI_APP_HANDLERS_H_ */
+#endif /* SOURCE_APP_TRACKER_APP_H_ */

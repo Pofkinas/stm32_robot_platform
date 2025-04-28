@@ -13,6 +13,8 @@
 #include "usart.h"
 #include "cli_app.h"
 #include "led_app.h"
+#include "motor_app.h"
+#include "tracker_app.h"
 #include "debug_api.h"
 #include "timer_driver.h"
 #include "uart_baudrate.h"
@@ -122,6 +124,8 @@ int main (void) {
     Timer_Driver_Start(eTimerDriver_TIM10);
 
     LED_APP_Init();
+    Motor_APP_Init();
+    Tracker_APP_Init();
     CLI_APP_Init(eUartBaudrate_115200);
 
     TRACE_INFO("Start OK\n");

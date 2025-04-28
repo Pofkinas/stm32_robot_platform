@@ -1,10 +1,12 @@
-#ifndef SOURCE_APP_CLI_CMD_HANDLERS_H_
-#define SOURCE_APP_CLI_CMD_HANDLERS_H_
+#ifndef SOURCE_API_I2C_API_H_
+#define SOURCE_API_I2C_API_H_
 /**********************************************************************************************************************
  * Includes
  *********************************************************************************************************************/
 
 #include <stdbool.h>
+#include <stdint.h>
+#include <stddef.h>
 #include "message.h"
 
 /**********************************************************************************************************************
@@ -15,6 +17,14 @@
  * Exported types
  *********************************************************************************************************************/
 
+/* clang-format off */
+typedef enum eI2c {
+    eI2c_First = 0,
+    eI2c_1 = eI2c_First,
+    eI2c_Last
+} eI2c_t;
+/* clang-format on */
+
 /**********************************************************************************************************************
  * Exported variables
  *********************************************************************************************************************/
@@ -23,15 +33,8 @@
  * Prototypes of exported functions
  *********************************************************************************************************************/
 
-bool CLI_APP_Led_Handlers_Set (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Led_Handlers_Reset (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Led_Handlers_Toggle (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Led_Handlers_Blink (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Pwm_Led_Handlers_Set_Brightness (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Pwm_Led_Handlers_Pulse (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Motors_Handlers_Stop (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Motors_Handlers_Set (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Tracker_Handlers_Start (sMessage_t arguments, sMessage_t *response);
-bool CLI_APP_Tracker_Handlers_Stop (sMessage_t arguments, sMessage_t *response);
+bool I2C_API_Init (const eI2c_t i2c);
+bool I2C_API_Write (const eI2c_t i2c, const uint8_t device_address, uint8_t *data, const size_t data_size, const uint16_t mem_address, const uint8_t mem_address_size, uint32_t timeout);
+bool I2C_API_Read (const eI2c_t i2c, const uint8_t device_address, uint8_t *data, const size_t bytes_to_read, const uint16_t mem_address, const uint8_t mem_address_size, uint32_t timeout);
 
-#endif /* SOURCE_APP_CLI_APP_HANDLERS_H_ */
+#endif /* SOURCE_API_I2C_API_H_ */
