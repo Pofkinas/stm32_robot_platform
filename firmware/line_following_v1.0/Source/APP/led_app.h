@@ -42,6 +42,17 @@ typedef struct sLedBlink {
     uint8_t blink_time;
     uint16_t blink_frequency;
 } sLedBlink_t;
+
+typedef struct sLedSetBrightness {
+    eLedPwmPin_t led_pin;
+    uint8_t duty_cycle;
+} sLedSetBrightness_t;
+
+typedef struct sLedPulse {
+    eLedPwmPin_t led_pin;
+    uint8_t pulse_time;
+    uint16_t pulse_frequency;
+} sLedPulse_t;
 /* clang-format on */
 
 /**********************************************************************************************************************
