@@ -197,32 +197,6 @@ static bool I2C_API_ReadMultiBytes (const eI2cDriver_t i2c, uint8_t *data, const
             }
         }
         
-        // if (!I2C_Driver_ReadByte(g_static_i2c_lut[i2c].i2c_driver, &data[bytes_to_read - remaining_bytes])) {
-        //     I2C_Driver_StopComms(g_static_i2c_lut[i2c].i2c_driver);
-
-        //     return false;
-        // }
-
-        // if (remaining_bytes > 2){
-        //     if (!I2C_Driver_Acknowledge(g_static_i2c_lut[i2c].i2c_driver, true)) {
-        //         I2C_Driver_StopComms(g_static_i2c_lut[i2c].i2c_driver);
-
-        //         return false;
-        //     }
-        // }
-
-        // if (remaining_bytes == 2) {
-        //     if (!I2C_Driver_Acknowledge(g_static_i2c_lut[i2c].i2c_driver, false)) {
-        //         I2C_Driver_StopComms(g_static_i2c_lut[i2c].i2c_driver);
-
-        //         return false;
-        //     }
-
-        //     if (!I2C_Driver_StopComms(g_static_i2c_lut[i2c].i2c_driver)) {
-        //         return false;
-        //     }
-        // }
-
         remaining_bytes--;
     }
 
@@ -302,7 +276,7 @@ bool I2C_API_Write (const eI2c_t i2c, const uint8_t device_address, uint8_t *dat
         }
     }
 
-    if (!I2C_API_IsActiveFlag(i2c, eI2cDriver_Flags_Btf, true, ticks, timeout)) {
+    if (!I2C_API_IsActiveFlag(i2c, eI2cDriver_Flags_Txe, true, ticks, timeout)) {
         return false;
     }
 
@@ -338,9 +312,13 @@ bool I2C_API_Read (const eI2c_t i2c, const uint8_t device_address, uint8_t *data
             return false;
         }
 
-        if (!I2C_API_IsActiveFlag(i2c, eI2cDriver_Flags_Btf, true, ticks, timeout)) {
+        if (!I2C_API_IsActiveFlag(i2c, eI2cDriver_Flags_Txe, true, ticks, timeout)) {
             return false;
         }
+    }
+
+    if (!I2C_API_IsActiveFlag(i2c, eI2cDriver_Flags_Btf, true, ticks, timeout)) {
+        return false;
     }
 
     if (!I2C_API_StartComms(i2c, device_address, &ticks, timeout, true, I2C_READ)) {
