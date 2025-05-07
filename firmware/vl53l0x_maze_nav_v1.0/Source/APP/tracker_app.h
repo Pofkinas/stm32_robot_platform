@@ -1,27 +1,31 @@
-#ifndef SOURCE_DRIVER_TIMER_DRIVER_H_
-#define SOURCE_DRIVER_TIMER_DRIVER_H_
+#ifndef SOURCE_APP_TRACKER_APP_H_
+#define SOURCE_APP_TRACKER_APP_H_
 /**********************************************************************************************************************
  * Includes
  *********************************************************************************************************************/
 
 #include <stdbool.h>
-#include <stdint.h>
 
 /**********************************************************************************************************************
  * Exported definitions and macros
  *********************************************************************************************************************/
+
+#define TRACKER_COMMAND_MESSAGE_CAPACITY 20
 
 /**********************************************************************************************************************
  * Exported types
  *********************************************************************************************************************/
 
 /* clang-format off */
-typedef enum eTimerDriver {
-    eTimerDriver_First = 0,
-    eTimerDriver_TIM3 = eTimerDriver_First,
-    eTimerDriver_TIM10,
-    eTimerDriver_Last
-} eTimerDriver_t;
+typedef enum  eTrackerTask {
+    eTrackerTask_First = 0,
+    eTrackerTask_Collect = eTrackerTask_First,
+    eTrackerTask_Start,
+    eTrackerTask_Stop,
+    eTrackerTask_FallowLine,
+    eTrackerTask_SearchLine,
+    eTrackerTask_Last
+} eTrackerTask_t;
 /* clang-format on */
 
 /**********************************************************************************************************************
@@ -32,9 +36,7 @@ typedef enum eTimerDriver {
  * Prototypes of exported functions
  *********************************************************************************************************************/
 
-bool Timer_Driver_InitAllTimers (void);
-bool Timer_Driver_Start (const eTimerDriver_t timer);
-bool Timer_Driver_Stop (const eTimerDriver_t timer);
-uint16_t Timer_Driver_GetResolution (const eTimerDriver_t timer);
+bool Tracker_APP_Init (void);
+bool Tracker_APP_Add_Task (eTrackerTask_t task_to_message_queque);
 
-#endif /* SOURCE_DRIVER_TIMER_DRIVER_H_ */
+#endif /* SOURCE_APP_TRACKER_APP_H_ */

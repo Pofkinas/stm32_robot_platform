@@ -5,6 +5,7 @@
 #include "led_api.h"
 #include "cmsis_os2.h"
 #include "gpio_driver.h"
+#include "pwm_driver.h"
 #include "timer_driver.h"
 
 /**********************************************************************************************************************
@@ -30,6 +31,11 @@ typedef struct sLedControlDesc {
     osMutexAttr_t blink_mutex_attributes;
 } sLedControlDesc_t;
 
+typedef struct sLedPwmControlDesc {
+    osTimerAttr_t pulse_timer_attributes;
+    osMutexAttr_t pulse_mutex_attributes;
+} sLedPwmControlDesc_t;
+
 typedef struct sLedBlinkDesc {
     eLedPin_t led;
     osTimerId_t blink_timer;
@@ -39,6 +45,22 @@ typedef struct sLedBlinkDesc {
     uint16_t total_blinks;
     uint16_t blink_count;
 } sLedBlinkDesc_t; 
+
+typedef struct sLedPulseDesc {
+    eLedPwmPin_t led;
+    ePwmDevice_t pwm_device;
+    osTimerId_t pulse_timer;
+    osMutexId_t pulse_mutex;
+    bool is_running;
+    void (*timer_callback) (void *arg);
+    bool count_dir_up;
+    uint16_t duty_cycle_change;
+    uint16_t total_pulses;
+    uint16_t total_changes_per_pulse;
+    uint16_t current_duty_cycle;
+    uint16_t pulse_count;
+    uint16_t change_count;
+} sLedPulseDesc_t;
 
 /**********************************************************************************************************************
  * Private constants
@@ -52,6 +74,14 @@ const static sLedControlDesc_t g_basic_led_control_static_lut[eLedPin_Last] = {
         .blink_mutex_attributes = {.name = "LED_API_Onboard_LED_Mutex", .attr_bits = osMutexRecursive | osMutexPrioInherit, .cb_mem = NULL, .cb_size = 0U},
     }
 };
+
+const static sLedPwmControlDesc_t g_pwm_led_control_static_lut[eLedPwmPin_Last] = {
+    // [eLedPwmPin_Test] = {
+    //     .pulse_timer_attributes = {.name = "LED_API_Test_Pulse_Timer", .attr_bits = 0, .cb_mem = NULL, .cb_size = 0},
+    //     .pulse_mutex_attributes = {.name = "LED_API_Test_Pulse_Mutex", .attr_bits = osMutexRecursive | osMutexPrioInherit, .cb_mem = NULL, .cb_size = 0U},
+    // }
+    0
+};
 /* clang-format on */
 
 /**********************************************************************************************************************
@@ -59,6 +89,7 @@ const static sLedControlDesc_t g_basic_led_control_static_lut[eLedPin_Last] = {
  *********************************************************************************************************************/
 
 static void LED_API_Blink_Timer_Callback (void *arg);
+static void LED_API_Pulse_timer_Callback (void *arg);
 
 /**********************************************************************************************************************
  * Private variables
@@ -79,6 +110,25 @@ static sLedBlinkDesc_t g_led_blink_lut[eLedPin_Last] = {
         .total_blinks = 0,
         .blink_count = 0,
     }
+};
+
+static sLedPulseDesc_t g_led_pulse_lut[eLedPwmPin_Last] = {
+    // [eLedPwmPin_Test] = {
+    //     .led = eLedPwmPin_Test,
+    //     .pwm_device = ePwmDevice_Ws2812b,
+    //     .pulse_timer = NULL,
+    //     .pulse_mutex = NULL,
+    //     .is_running = false,
+    //     .timer_callback = LED_API_Pulse_timer_Callback,
+    //     .count_dir_up = true,
+    //     .duty_cycle_change = 0,
+    //     .total_pulses = 0,
+    //     .total_changes_per_pulse = 0,
+    //     .current_duty_cycle = 0,
+    //     .pulse_count = 0,
+    //     .change_count = 0
+    // }
+    0
 };
 /* clang-format on */
 
@@ -118,6 +168,47 @@ static void LED_API_Blink_Timer_Callback (void *arg) {
     return;
 }
 
+static void LED_API_Pulse_timer_Callback (void *arg) {
+   sLedPulseDesc_t *led_pulse_desc = (sLedPulseDesc_t*) arg;
+
+   if (!led_pulse_desc->is_running) {
+       if (osMutexAcquire(led_pulse_desc->pulse_mutex, PULSE_MUTEX_TIMEOUT) != osOK) {
+           return;
+       }
+   }
+
+   led_pulse_desc->is_running = true;
+
+   osMutexRelease(led_pulse_desc->pulse_mutex);
+
+   PWM_Driver_Change_Duty_Cycle(led_pulse_desc->pwm_device, led_pulse_desc->current_duty_cycle);
+
+   if (led_pulse_desc->change_count >= led_pulse_desc->total_changes_per_pulse) {
+       if (led_pulse_desc->count_dir_up) {
+           led_pulse_desc->count_dir_up = false;
+           led_pulse_desc->change_count = 0;
+       } else {
+           led_pulse_desc->count_dir_up = true;
+           led_pulse_desc->change_count = 0;
+           led_pulse_desc->pulse_count ++;
+       }
+   }
+
+   if (led_pulse_desc->count_dir_up) {
+       led_pulse_desc->current_duty_cycle += led_pulse_desc->duty_cycle_change;
+   } else {
+       led_pulse_desc->current_duty_cycle -= led_pulse_desc->duty_cycle_change;
+   }
+
+   if (led_pulse_desc->pulse_count >= led_pulse_desc->total_pulses) {
+       osTimerStop(led_pulse_desc->pulse_timer);
+
+       led_pulse_desc->is_running = false;
+   }
+
+   return;
+}
+
 /**********************************************************************************************************************
  * Definitions of exported functions
  *********************************************************************************************************************/
@@ -131,6 +222,10 @@ bool LED_API_Init (void) {
         return false;
     }
 
+    if (!PWM_Driver_InitAllDevices()) {
+        return false;
+    }
+
     for (eLedPin_t led = eLedPin_First; led < eLedPin_Last; led++) {
         if (g_led_blink_lut[led].blink_timer == NULL) {
             g_led_blink_lut[led].blink_timer = osTimerNew(g_led_blink_lut[led].timer_callback, osTimerPeriodic, &g_led_blink_lut[led], &g_basic_led_control_static_lut[led].blink_timer_attributes);
@@ -138,6 +233,25 @@ bool LED_API_Init (void) {
 
         if (g_led_blink_lut[led].blink_mutex == NULL) {
             g_led_blink_lut[led].blink_mutex = osMutexNew(&g_basic_led_control_static_lut[led].blink_mutex_attributes);
+        }
+    }
+
+    if (eLedPwmPin_Last <= eLedPwmPin_First) {
+        g_is_initialized = true;
+        return true;
+    }
+
+    for (eLedPwmPin_t led = eLedPwmPin_First; led < eLedPwmPin_Last; led++) {
+        if (g_led_pulse_lut[led].pulse_timer == NULL) {
+            g_led_pulse_lut[led].pulse_timer = osTimerNew(g_led_pulse_lut[led].timer_callback, osTimerPeriodic, &g_led_pulse_lut[led], &g_pwm_led_control_static_lut[led].pulse_timer_attributes);
+        }
+
+        if (g_led_pulse_lut[led].pulse_mutex == NULL) {
+            g_led_pulse_lut[led].pulse_mutex = osMutexNew(&g_pwm_led_control_static_lut[led].pulse_mutex_attributes);
+        }
+
+        if (!PWM_Driver_Enable_Device(g_led_pulse_lut[led].pwm_device)) {
+            return false;
         }
     }
 
@@ -217,6 +331,64 @@ bool LED_API_Blink (const eLedPin_t led_pin, const uint8_t blink_time, const uin
     return true;
 }
 
+bool LED_API_Set_Brightness (const eLedPwmPin_t led_pin, const uint8_t brightness) {
+    if (!g_is_initialized) {
+        return false;
+    }
+
+    if (!LED_API_IsCorrectPwmLed(led_pin)) {
+        return false;
+    }
+
+    if (!LED_API_IsCorrectDutyCycle(brightness)) {
+        return false;
+    }
+
+    return PWM_Driver_Change_Duty_Cycle(g_led_pulse_lut[led_pin].pwm_device, brightness);
+}
+
+bool LED_API_Pulse (const eLedPwmPin_t led_pin, const uint8_t pulsing_time, const uint16_t pulse_frequency) {
+    if (!g_is_initialized) {
+        return false;
+    }
+
+    if (!LED_API_IsCorrectPwmLed(led_pin)) {
+        return false;
+    }
+
+    if (!LED_API_IsCorrectPulseTime(pulsing_time)) {
+        return false;
+    }
+
+    if (!LED_API_IsCorrectPulseFrequency(pulse_frequency)) {
+        return false;
+    }
+
+    if (g_led_pulse_lut[led_pin].is_running) {
+        return false;
+    }
+
+    if (osMutexAcquire(g_led_pulse_lut[led_pin].pulse_mutex, PULSE_MUTEX_TIMEOUT) != osOK) {
+        return false;
+    }
+
+    g_led_pulse_lut[led_pin].total_pulses = (pulsing_time * 1000 / pulse_frequency);
+    g_led_pulse_lut[led_pin].pulse_count = 0;
+
+    g_led_pulse_lut[led_pin].total_changes_per_pulse = pulse_frequency / 2; 
+    g_led_pulse_lut[led_pin].duty_cycle_change = MAX_DUTY_CYCLE / g_led_pulse_lut[led_pin].total_changes_per_pulse;
+    
+    g_led_pulse_lut[led_pin].change_count = 0;
+    g_led_pulse_lut[led_pin].current_duty_cycle = g_led_pulse_lut[led_pin].duty_cycle_change;
+    g_led_pulse_lut[led_pin].count_dir_up = true;
+
+    osTimerStart(g_led_pulse_lut[led_pin].pulse_timer, PULSE_TIMER_FREQUENCY);
+
+    osMutexRelease(g_led_pulse_lut[led_pin].pulse_mutex);
+
+    return true;
+}
+
 bool LED_API_IsCorrectLed (const eLedPin_t led_pin) {
     return (led_pin >= eLedPin_First) && (led_pin < eLedPin_Last);
 }
@@ -227,4 +399,20 @@ bool LED_API_IsCorrectBlinkTime (const uint8_t blink_time) {
 
 bool LED_API_IsCorrectBlinkFrequency (const uint16_t blink_frequency) {
     return (blink_frequency <= MAX_BLINK_FREQUENCY) && (blink_frequency >= MIN_BLINK_FREQUENCY);
+}
+
+bool LED_API_IsCorrectPwmLed (const eLedPwmPin_t led_pin) {
+    return (led_pin >= eLedPwmPin_First) && (led_pin < eLedPwmPin_Last);
+}
+
+bool LED_API_IsCorrectDutyCycle (const uint8_t duty_cycle) {
+    return (duty_cycle >= MIN_DUTY_CYCLE) && (duty_cycle <= MAX_DUTY_CYCLE);
+}
+
+bool LED_API_IsCorrectPulseTime (const uint8_t pulse_time) {
+    return (pulse_time <= MAX_PULSING_TIME) && (pulse_time > 0);
+}
+
+bool LED_API_IsCorrectPulseFrequency (const uint16_t pulse_frequency) {
+    return (pulse_frequency <= MAX_PULSE_FREQUENCY) && (pulse_frequency > MIN_PULSE_FREQUENCY);
 }

@@ -13,6 +13,8 @@
  * Private definitions and macros
  *********************************************************************************************************************/
 
+#define DEBUG_LED_APP
+
 #define MESSAGE_QUEUE_PRIORITY 0U
 #define MESSAGE_QUEUE_TIMEOUT 0U
 
@@ -24,7 +26,11 @@
  * Private constants
  *********************************************************************************************************************/
 
+#ifdef DEBUG_LED_APP 
 CREATE_MODULE_NAME (LED_APP)
+#else
+CREATE_MODULE_NAME_EMPTY
+#endif
 
 const static osThreadAttr_t g_led_thread_attributes = {
     .name = "LED_APP_Thread",
@@ -212,6 +218,92 @@ static void LED_APP_Thread (void *arg) {
                 }
 
                 TRACE_INFO("Led %d Blink %d s, @ %d Hz\n", arguments->led_pin, arguments->blink_time, arguments->blink_frequency);
+
+                Heap_API_Free(arguments);
+            } break;
+            case eLedTask_Set_Brightness: {
+                sLedSetBrightness_t *arguments = (sLedSetBrightness_t*) g_received_task.data;
+
+                if (arguments == NULL){
+                    TRACE_ERR("No arguments\n");
+
+                    Heap_API_Free(arguments);
+
+                    break;
+                }
+
+                if (!LED_API_IsCorrectPwmLed(arguments->led_pin)) {
+                    TRACE_ERR("Invalid Led\n");
+
+                    Heap_API_Free(arguments);
+
+                    break;
+                }
+
+                if (!LED_API_IsCorrectDutyCycle(arguments->duty_cycle)) {
+                    TRACE_ERR("Invalid duty cycle\n");
+
+                    Heap_API_Free(arguments);
+
+                    break;
+                }
+
+                if (!LED_API_Set_Brightness(arguments->led_pin, arguments->duty_cycle)) {
+                    TRACE_ERR("LED Set Brightness Failed\n");
+
+                    Heap_API_Free(arguments);
+
+                    break;
+                }
+
+                TRACE_INFO("Pwm Led %d Brightness %d\n", arguments->led_pin, arguments->duty_cycle);
+
+                Heap_API_Free(arguments);
+            } break;
+            case eLedTask_Pulse: {
+                sLedPulse_t *arguments = (sLedPulse_t*) g_received_task.data;
+
+                if (arguments == NULL){
+                    TRACE_ERR("No arguments\n");
+
+                    Heap_API_Free(arguments);
+
+                    break;
+                }
+
+                if (!LED_API_IsCorrectPwmLed(arguments->led_pin)) {
+                    TRACE_ERR("Invalid Led\n");
+
+                    Heap_API_Free(arguments);
+
+                    break;
+                }
+
+                if (!LED_API_IsCorrectPulseTime(arguments->pulse_time)) {
+                    TRACE_ERR("Invalid pulse time\n");
+
+                    Heap_API_Free(arguments);
+
+                    break;
+                }
+
+                if (!LED_API_IsCorrectPulseFrequency(arguments->pulse_frequency)) {
+                    TRACE_ERR("Invalid pulse frequency\n");
+
+                    Heap_API_Free(arguments);
+
+                    break;
+                }
+
+                if (!LED_API_Pulse(arguments->led_pin, arguments->pulse_time, arguments->pulse_frequency)) {
+                    TRACE_ERR("LED Pulse Failed\n");
+
+                    Heap_API_Free(arguments);
+
+                    break;
+                }
+
+                TRACE_INFO("Pwm Led %d Pulse %d s, @ %d Hz\n", arguments->led_pin, arguments->pulse_time, arguments->pulse_frequency);
 
                 Heap_API_Free(arguments);
             } break;

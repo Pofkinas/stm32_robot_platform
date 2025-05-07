@@ -1,11 +1,12 @@
-#ifndef SOURCE_DRIVER_TIMER_DRIVER_H_
-#define SOURCE_DRIVER_TIMER_DRIVER_H_
+#ifndef SOURCE_API_VL53L0XV2_API_H_
+#define SOURCE_API_VL53L0XV2_API_H_
 /**********************************************************************************************************************
  * Includes
  *********************************************************************************************************************/
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stddef.h>
 
 /**********************************************************************************************************************
  * Exported definitions and macros
@@ -15,14 +16,11 @@
  * Exported types
  *********************************************************************************************************************/
 
-/* clang-format off */
-typedef enum eTimerDriver {
-    eTimerDriver_First = 0,
-    eTimerDriver_TIM3 = eTimerDriver_First,
-    eTimerDriver_TIM10,
-    eTimerDriver_Last
-} eTimerDriver_t;
-/* clang-format on */
+typedef enum eVl53l0x {
+    eVl53l0x_First = 0,
+    eVl53l0x_1 = eVl53l0x_First,
+    eVl53l0x_Last
+} eVl53l0x_t;
 
 /**********************************************************************************************************************
  * Exported variables
@@ -32,9 +30,9 @@ typedef enum eTimerDriver {
  * Prototypes of exported functions
  *********************************************************************************************************************/
 
-bool Timer_Driver_InitAllTimers (void);
-bool Timer_Driver_Start (const eTimerDriver_t timer);
-bool Timer_Driver_Stop (const eTimerDriver_t timer);
-uint16_t Timer_Driver_GetResolution (const eTimerDriver_t timer);
+bool VL53L0X_API_Init (const eVl53l0x_t vl53l0x);
+bool VL53L0X_API_Enable (const eVl53l0x_t vl53l0x);
+bool VL53L0X_API_Disable (const eVl53l0x_t vl53l0x);
+bool VL53L0X_API_GetDistance (const eVl53l0x_t vl53l0x, uint16_t *distance, size_t timeout);
 
-#endif /* SOURCE_DRIVER_TIMER_DRIVER_H_ */
+#endif /* SOURCE_API_VL53L0XV2_API_H_ */

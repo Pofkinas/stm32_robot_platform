@@ -1,11 +1,10 @@
-#ifndef SOURCE_DRIVER_TIMER_DRIVER_H_
-#define SOURCE_DRIVER_TIMER_DRIVER_H_
+#ifndef SOURCE_API_TCRT5000_API_H_
+#define SOURCE_API_TCRT5000_API_H_
 /**********************************************************************************************************************
  * Includes
  *********************************************************************************************************************/
 
 #include <stdbool.h>
-#include <stdint.h>
 
 /**********************************************************************************************************************
  * Exported definitions and macros
@@ -16,12 +15,17 @@
  *********************************************************************************************************************/
 
 /* clang-format off */
-typedef enum eTimerDriver {
-    eTimerDriver_First = 0,
-    eTimerDriver_TIM3 = eTimerDriver_First,
-    eTimerDriver_TIM10,
-    eTimerDriver_Last
-} eTimerDriver_t;
+typedef enum eTcrt5000 {
+    eTcrt5000_First = 0,
+    eTcrt5000_Main = eTcrt5000_First,
+    eTcrt5000_Last
+} eTcrt5000_t;
+
+typedef struct sTcrt5000Data {
+    eTcrt5000_t device;
+    bool is_tiggered;
+    bool pin_state;
+} sTcrt5000Data_t;
 /* clang-format on */
 
 /**********************************************************************************************************************
@@ -32,9 +36,12 @@ typedef enum eTimerDriver {
  * Prototypes of exported functions
  *********************************************************************************************************************/
 
-bool Timer_Driver_InitAllTimers (void);
-bool Timer_Driver_Start (const eTimerDriver_t timer);
-bool Timer_Driver_Stop (const eTimerDriver_t timer);
-uint16_t Timer_Driver_GetResolution (const eTimerDriver_t timer);
+bool Tcrt5000_API_Init (void);
+bool Tcrt5000_API_Enable (void);
+bool Tcrt5000_API_Disable (void);
+bool Tcrt5000_API_GetData (sTcrt5000Data_t *data);
+bool Tcrt5000_API_ReadPinState (const eTcrt5000_t device, bool *pin_state);
+bool Tcrt5000_API_ClearTrigger (const eTcrt5000_t device);
+bool Tcrt5000_API_IsCorrectTcrt5000 (const eTcrt5000_t device);
 
-#endif /* SOURCE_DRIVER_TIMER_DRIVER_H_ */
+#endif /* SOURCE_API_TCRT5000_API_H_ */

@@ -82,8 +82,7 @@ void NMI_Handler(void)
 /**
   * @brief This function handles Hard fault interrupt.
   */
-void HardFault_Handler(void)
-{
+void HardFault_Handler(void){
   /* USER CODE BEGIN HardFault_IRQn 0 */
 
   /* USER CODE END HardFault_IRQn 0 */
@@ -230,16 +229,16 @@ void TIM2_IRQHandler(void)
 /**
   * @brief This function handles I2C1 event interrupt.
   */
-void I2C1_EV_IRQHandler(void)
-{
-  /* USER CODE BEGIN I2C1_EV_IRQn 0 */
-
-  /* USER CODE END I2C1_EV_IRQn 0 */
-
-  /* USER CODE BEGIN I2C1_EV_IRQn 1 */
-
-  /* USER CODE END I2C1_EV_IRQn 1 */
-}
+//void I2C1_EV_IRQHandler(void)
+//{
+//  /* USER CODE BEGIN I2C1_EV_IRQn 0 */
+//
+//  /* USER CODE END I2C1_EV_IRQn 0 */
+//
+//  /* USER CODE BEGIN I2C1_EV_IRQn 1 */
+//
+//  /* USER CODE END I2C1_EV_IRQn 1 */
+//}
 
 /* USER CODE BEGIN 1 */
 

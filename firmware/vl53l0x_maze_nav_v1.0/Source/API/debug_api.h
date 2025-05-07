@@ -16,10 +16,20 @@
  * Exported definitions and macros
  *********************************************************************************************************************/
 
+#define ENABLE_DEBUG
+
 #define CREATE_MODULE_NAME(file_name) static const char *trace_module_name = #file_name;
+#define CREATE_MODULE_NAME_EMPTY static const char *trace_module_name = NULL;
+
+#ifdef ENABLE_DEBUG
 #define TRACE_INFO(format, ...) Debug_API_Print(eTraceLevel_Info, trace_module_name,__FILE__, __LINE__, format, ##__VA_ARGS__)
 #define TRACE_WRN(format, ...) Debug_API_Print(eTraceLevel_Warning, trace_module_name,__FILE__, __LINE__, format, ##__VA_ARGS__)
 #define TRACE_ERR(format, ...) Debug_API_Print(eTraceLevel_Error, trace_module_name, __FILE__, __LINE__, format, ##__VA_ARGS__)
+#else
+#define TRACE_INFO(format, ...)
+#define TRACE_WRN(format, ...)
+#define TRACE_ERR(format, ...)
+#endif
 
 /**********************************************************************************************************************
  * Exported types

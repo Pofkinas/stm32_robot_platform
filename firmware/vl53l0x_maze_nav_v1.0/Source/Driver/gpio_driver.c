@@ -126,7 +126,7 @@ const static sGpioDesc_t g_static_gpio_lut[eGpioPin_Last] = {
         .pin = LL_GPIO_PIN_8,
         .mode = LL_GPIO_MODE_ALTERNATE,
         .speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
-        .pull = LL_GPIO_PULL_UP,
+        .pull = LL_GPIO_PULL_NO,
         .output = LL_GPIO_OUTPUT_OPENDRAIN,
         .clock = LL_AHB1_GRP1_PERIPH_GPIOB,
         .alternate = LL_GPIO_AF_4
@@ -136,10 +136,20 @@ const static sGpioDesc_t g_static_gpio_lut[eGpioPin_Last] = {
         .pin = LL_GPIO_PIN_9,
         .mode = LL_GPIO_MODE_ALTERNATE,
         .speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
-        .pull = LL_GPIO_PULL_UP,
+        .pull = LL_GPIO_PULL_NO,
         .output = LL_GPIO_OUTPUT_OPENDRAIN,
         .clock = LL_AHB1_GRP1_PERIPH_GPIOB,
         .alternate = LL_GPIO_AF_4
+    },
+    [eGpioPin_vl53l0_Xshut_1] = {
+        .port = GPIOC,
+        .pin = LL_GPIO_PIN_13,
+        .mode = LL_GPIO_MODE_OUTPUT,
+        .speed = LL_GPIO_SPEED_FREQ_LOW,
+        .pull = LL_GPIO_PULL_NO,
+        .output = LL_GPIO_OUTPUT_PUSHPULL,
+        .clock = LL_AHB1_GRP1_PERIPH_GPIOC,
+        .alternate = LL_GPIO_AF_0
     }
 };
 /* clang-format on */
@@ -252,6 +262,18 @@ bool GPIO_Driver_SetPinMode (const eGpioPin_t gpio_pin, const uint32_t mode) {
     }
 
     LL_GPIO_SetPinMode(g_static_gpio_lut[gpio_pin].port, g_static_gpio_lut[gpio_pin].pin, mode);
+
+    return true;
+}
+
+bool GPIO_Driver_ResetPin (const eGpioPin_t gpio_pin) {
+    if ((gpio_pin < eGpioPin_First) || (gpio_pin >= eGpioPin_Last)) {
+        return false;
+    }
+
+    LL_GPIO_SetPinMode(g_static_gpio_lut[gpio_pin].port, g_static_gpio_lut[gpio_pin].pin, LL_GPIO_MODE_OUTPUT);
+    LL_GPIO_ResetOutputPin(g_static_gpio_lut[gpio_pin].port, g_static_gpio_lut[gpio_pin].pin);
+    LL_GPIO_SetPinMode(g_static_gpio_lut[gpio_pin].port, g_static_gpio_lut[gpio_pin].pin, g_static_gpio_lut[gpio_pin].mode);
 
     return true;
 }

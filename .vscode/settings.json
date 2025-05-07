@@ -2,6 +2,26 @@
     "files.associations": {
         "heap_api.h": "c",
         "stm32f4xx_ll_gpio.h": "c",
-        "gpio_driver.h": "c"
+        "gpio_driver.h": "c",
+        "stm32f4xx_ll_utils.h": "c",
+        "freertosconfig.h": "c",
+        "stm32f4xx_ll_system.h": "c",
+        "uart_baudrate.h": "c",
+        "timer_driver.h": "c",
+        "i2c_api.h": "c",
+        "message.h": "c",
+        "stdbool.h": "c",
+        "vl53l0x_api.h": "c",
+        "vl53l0x_def.h": "c",
+        "i2c_driver.h": "c",
+        "cmsis_os.h": "c",
+        "vl53l0x_i2c_platform.h": "c",
+        "stdint.h": "c",
+        "stddef.h": "c",
+        "ws2812b_driver.h": "c",
+        "dma_driver.h": "c",
+        "iterator": "c",
+        "debug_api.h": "c",
+        "ws2812b_api.h": "c"
     }
 }

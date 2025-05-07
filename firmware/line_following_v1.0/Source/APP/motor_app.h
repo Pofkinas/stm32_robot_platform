@@ -1,11 +1,12 @@
-#ifndef SOURCE_DRIVER_TIMER_DRIVER_H_
-#define SOURCE_DRIVER_TIMER_DRIVER_H_
+#ifndef SOURCE_APP_MOTOR_APP_H_
+#define SOURCE_APP_MOTOR_APP_H_
 /**********************************************************************************************************************
  * Includes
  *********************************************************************************************************************/
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "motor_api.h"
 
 /**********************************************************************************************************************
  * Exported definitions and macros
@@ -16,12 +17,22 @@
  *********************************************************************************************************************/
 
 /* clang-format off */
-typedef enum eTimerDriver {
-    eTimerDriver_First = 0,
-    eTimerDriver_TIM3 = eTimerDriver_First,
-    eTimerDriver_TIM10,
-    eTimerDriver_Last
-} eTimerDriver_t;
+typedef enum eMotorTask {
+    eMotorTask_First,
+    eMotorTask_Set = eMotorTask_First,
+    eMotorTask_Stop,
+    eMotorTask_Last
+} eMotorTask_t;
+
+typedef struct sMotorCommandDesc {
+    eMotorTask_t task;
+    void *data;
+} sMotorCommandDesc_t;
+
+typedef struct sMotorSet {
+    uint8_t speed;
+    eMotorDirection_t direction;
+} sMotorSet_t;
 /* clang-format on */
 
 /**********************************************************************************************************************
@@ -32,9 +43,7 @@ typedef enum eTimerDriver {
  * Prototypes of exported functions
  *********************************************************************************************************************/
 
-bool Timer_Driver_InitAllTimers (void);
-bool Timer_Driver_Start (const eTimerDriver_t timer);
-bool Timer_Driver_Stop (const eTimerDriver_t timer);
-uint16_t Timer_Driver_GetResolution (const eTimerDriver_t timer);
+bool Motor_APP_Init (void);
+bool Motor_APP_Add_Task (sMotorCommandDesc_t *task_to_message_queue);
 
-#endif /* SOURCE_DRIVER_TIMER_DRIVER_H_ */
+#endif /* SOURCE_APP_MOTOR_APP_H_ */
