@@ -5,6 +5,7 @@
  *********************************************************************************************************************/
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <stddef.h>
 
 /**********************************************************************************************************************
@@ -38,5 +39,7 @@ bool PWM_Driver_InitAllDevices (void);
 bool PWM_Driver_Enable_Device (const ePwmDevice_t device);
 bool PWM_Driver_Disable_Device (const ePwmDevice_t device);
 bool PWM_Driver_Change_Duty_Cycle (const ePwmDevice_t device, const size_t value);
+uint32_t PWM_Driver_GetRegAddr (const ePwmDevice_t device);
+uint32_t PWM_Driver_GetCompareValue (const ePwmDevice_t device);
 
 #endif /* SOURCE_DRIVER_PWM_DRIVER_H_ */

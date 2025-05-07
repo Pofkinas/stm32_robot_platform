@@ -265,3 +265,15 @@ bool GPIO_Driver_SetPinMode (const eGpioPin_t gpio_pin, const uint32_t mode) {
 
     return true;
 }
+
+bool GPIO_Driver_ResetPin (const eGpioPin_t gpio_pin) {
+    if ((gpio_pin < eGpioPin_First) || (gpio_pin >= eGpioPin_Last)) {
+        return false;
+    }
+
+    LL_GPIO_SetPinMode(g_static_gpio_lut[gpio_pin].port, g_static_gpio_lut[gpio_pin].pin, LL_GPIO_MODE_OUTPUT);
+    LL_GPIO_ResetOutputPin(g_static_gpio_lut[gpio_pin].port, g_static_gpio_lut[gpio_pin].pin);
+    LL_GPIO_SetPinMode(g_static_gpio_lut[gpio_pin].port, g_static_gpio_lut[gpio_pin].pin, g_static_gpio_lut[gpio_pin].mode);
+
+    return true;
+}

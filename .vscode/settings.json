@@ -15,6 +15,13 @@
         "vl53l0x_def.h": "c",
         "i2c_driver.h": "c",
         "cmsis_os.h": "c",
-        "vl53l0x_i2c_platform.h": "c"
+        "vl53l0x_i2c_platform.h": "c",
+        "stdint.h": "c",
+        "stddef.h": "c",
+        "ws2812b_driver.h": "c",
+        "dma_driver.h": "c",
+        "iterator": "c",
+        "debug_api.h": "c",
+        "ws2812b_api.h": "c"
     }
 }

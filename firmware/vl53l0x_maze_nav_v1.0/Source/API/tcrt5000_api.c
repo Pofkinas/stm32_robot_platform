@@ -5,13 +5,15 @@
 #include <stdio.h>
 #include <tcrt5000_api.h>
 #include "cmsis_os2.h"
-#include "debug_api.h"
 #include "exti_driver.h"
 #include "gpio_driver.h"
+#include "debug_api.h"
 
 /**********************************************************************************************************************
  * Private definitions and macros
  *********************************************************************************************************************/
+
+#define DEBUG_TCRT5000_API
 
 #define MESSAGE_QUEUE_PRIORITY 0U
 #define MESSAGE_QUEUE_TIMEOUT 0U
@@ -45,7 +47,11 @@ typedef struct sTcrt5000Dynamic {
  * Private constants
  *********************************************************************************************************************/
 
+#ifdef DEBUG_TCRT5000_API
 CREATE_MODULE_NAME (TCRT5000_API)
+#else
+CREATE_MODULE_NAME_EMPTY
+#endif
 
 const static osThreadAttr_t g_tcrt5000_thread_attributes = {
     .name = "Tcrt5000_Thread",

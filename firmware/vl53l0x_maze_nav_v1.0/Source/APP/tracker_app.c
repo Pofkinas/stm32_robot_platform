@@ -15,6 +15,8 @@
  * Private definitions and macros
  *********************************************************************************************************************/
 
+#define DEBUG_TRACKER_APP
+
 #define MESSAGE_QUEUE_PRIORITY 0U
 #define MESSAGE_QUEUE_TIMEOUT 0U
 
@@ -26,7 +28,11 @@
  * Private constants
  *********************************************************************************************************************/
 
+#ifdef DEBUG_TRACKER_APP
 CREATE_MODULE_NAME (Tracker_APP)
+#else
+CREATE_MODULE_NAME_EMPTY
+#endif
 
 const static osThreadAttr_t g_tracker_thread_attributes = {
     .name = "Tracker_APP_Thread",

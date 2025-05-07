@@ -3,10 +3,9 @@
  *********************************************************************************************************************/
 
 #include "pwm_driver.h"
-#include <stdint.h>
-#include <stddef.h>
 #include "stm32f4xx_ll_tim.h"
 #include "timer_driver.h"
+#include "gpio_driver.h"
 
 /**********************************************************************************************************************
  * Private definitions and macros
@@ -19,6 +18,7 @@
 typedef struct sPwmOcChannelDesc {
     TIM_TypeDef *periph;
     eTimerDriver_t timer;
+    eGpioPin_t gpio_pin;
     uint32_t channel;
     uint32_t mode;
     uint32_t oc_state;
@@ -31,6 +31,9 @@ typedef struct sPwmOcChannelDesc {
     void (*fast_mode_fp) (TIM_TypeDef *, uint32_t);
     void (*compare_preload_fp) (TIM_TypeDef *, uint32_t);
     void (*compare_value_fp) (TIM_TypeDef *, uint32_t);
+    bool is_dma_request_enabled;
+    void (*dma_request_fp) (TIM_TypeDef *);
+    uint32_t (*get_ccr_fp) (const TIM_TypeDef *);
 } sPwmOcChannelDesc_t;
 
 /**********************************************************************************************************************
@@ -42,6 +45,7 @@ const static sPwmOcChannelDesc_t g_static_pwm_lut[ePwmDevice_Last] = {
     [ePwmDevice_MotorA_A1] = {
         .periph = TIM3,
         .timer = eTimerDriver_TIM3,
+        .gpio_pin = eGpioPin_MotorA_A1,
         .channel = LL_TIM_CHANNEL_CH1,
         .mode = LL_TIM_OCMODE_PWM1,
         .oc_state = LL_TIM_OCSTATE_DISABLE,
@@ -53,11 +57,13 @@ const static sPwmOcChannelDesc_t g_static_pwm_lut[ePwmDevice_Last] = {
         .ocn_idle = LL_TIM_OCIDLESTATE_LOW,
         .fast_mode_fp = LL_TIM_OC_DisableFast,
         .compare_preload_fp = LL_TIM_OC_EnablePreload,
-        .compare_value_fp = LL_TIM_OC_SetCompareCH1
+        .compare_value_fp = LL_TIM_OC_SetCompareCH1,
+        .is_dma_request_enabled = false
     },
     [ePwmDevice_MotorA_A2] = {
         .periph = TIM3,
         .timer = eTimerDriver_TIM3,
+        .gpio_pin = eGpioPin_MotorA_A2,
         .channel = LL_TIM_CHANNEL_CH2,
         .mode = LL_TIM_OCMODE_PWM1,
         .oc_state = LL_TIM_OCSTATE_DISABLE,
@@ -69,11 +75,13 @@ const static sPwmOcChannelDesc_t g_static_pwm_lut[ePwmDevice_Last] = {
         .ocn_idle = LL_TIM_OCIDLESTATE_LOW,
         .fast_mode_fp = LL_TIM_OC_DisableFast,
         .compare_preload_fp = LL_TIM_OC_EnablePreload,
-        .compare_value_fp = LL_TIM_OC_SetCompareCH2
+        .compare_value_fp = LL_TIM_OC_SetCompareCH2,
+        .is_dma_request_enabled = false
     },
     [ePwmDevice_MotorB_A1] = {
         .periph = TIM3,
         .timer = eTimerDriver_TIM3,
+        .gpio_pin = eGpioPin_MotorB_A1,
         .channel = LL_TIM_CHANNEL_CH3,
         .mode = LL_TIM_OCMODE_PWM1,
         .oc_state = LL_TIM_OCSTATE_DISABLE,
@@ -85,11 +93,13 @@ const static sPwmOcChannelDesc_t g_static_pwm_lut[ePwmDevice_Last] = {
         .ocn_idle = LL_TIM_OCIDLESTATE_LOW,
         .fast_mode_fp = LL_TIM_OC_DisableFast,
         .compare_preload_fp = LL_TIM_OC_EnablePreload,
-        .compare_value_fp = LL_TIM_OC_SetCompareCH3
+        .compare_value_fp = LL_TIM_OC_SetCompareCH3,
+        .is_dma_request_enabled = false
     },
     [ePwmDevice_MotorB_A2] = {
         .periph = TIM3,
         .timer = eTimerDriver_TIM3,
+        .gpio_pin = eGpioPin_MotorB_A2,
         .channel = LL_TIM_CHANNEL_CH4,
         .mode = LL_TIM_OCMODE_PWM1,
         .oc_state = LL_TIM_OCSTATE_DISABLE,
@@ -101,7 +111,8 @@ const static sPwmOcChannelDesc_t g_static_pwm_lut[ePwmDevice_Last] = {
         .ocn_idle = LL_TIM_OCIDLESTATE_LOW,
         .fast_mode_fp = LL_TIM_OC_DisableFast,
         .compare_preload_fp = LL_TIM_OC_EnablePreload,
-        .compare_value_fp = LL_TIM_OC_SetCompareCH4
+        .compare_value_fp = LL_TIM_OC_SetCompareCH4,
+        .is_dma_request_enabled = false
     }
 };
 /* clang-format on */
@@ -167,6 +178,10 @@ bool PWM_Driver_InitAllDevices (void) {
         if (g_static_pwm_lut[device].compare_preload_fp != NULL) {
             g_static_pwm_lut[device].compare_preload_fp(g_static_pwm_lut[device].periph, g_static_pwm_lut[device].channel);
         }
+
+        if (g_static_pwm_lut[device].is_dma_request_enabled) {
+            g_static_pwm_lut[device].dma_request_fp(g_static_pwm_lut[device].periph);
+        }
     }
 
     return g_is_all_device_init;
@@ -185,15 +200,15 @@ bool PWM_Driver_Enable_Device (const ePwmDevice_t device) {
         return true;
     }
 
+    LL_TIM_CC_EnableChannel(g_static_pwm_lut[device].periph, g_static_pwm_lut[device].channel);
+
     if (!Timer_Driver_Start(g_static_pwm_lut[device].timer)) {
         return false;
     }
 
-    LL_TIM_CC_EnableChannel(g_static_pwm_lut[device].periph, g_static_pwm_lut[device].channel);
-
     g_is_device_enabled[device] = true;
 
-    return g_is_device_enabled[device];
+    return true;
 }
 
 bool PWM_Driver_Disable_Device (const ePwmDevice_t device) {
@@ -209,15 +224,15 @@ bool PWM_Driver_Disable_Device (const ePwmDevice_t device) {
         return true;
     }
 
+    g_static_pwm_lut[device].compare_value_fp(g_static_pwm_lut[device].periph, 0);
+
     if (!Timer_Driver_Stop(g_static_pwm_lut[device].timer)) {
         return false;
     }
 
-    LL_TIM_CC_DisableChannel(g_static_pwm_lut[device].periph, g_static_pwm_lut[device].channel);
-
     g_is_device_enabled[device] = false;
 
-    return g_is_device_enabled[device];
+    return true;
 }
 
 bool PWM_Driver_Change_Duty_Cycle (const ePwmDevice_t device, const size_t value) {
@@ -244,4 +259,50 @@ bool PWM_Driver_Change_Duty_Cycle (const ePwmDevice_t device, const size_t value
     g_static_pwm_lut[device].compare_value_fp(g_static_pwm_lut[device].periph, value);
 
     return true;
+}
+
+uint32_t PWM_Driver_GetRegAddr (const ePwmDevice_t device) {
+    if ((device < ePwmDevice_First) || (device >= ePwmDevice_Last)) {
+        return 0;
+    }
+
+    switch (g_static_pwm_lut[device].channel) {
+        case LL_TIM_CHANNEL_CH1: {
+            return (uint32_t) &g_static_pwm_lut[device].periph->CCR1;
+        }
+        case LL_TIM_CHANNEL_CH2: {
+            return (uint32_t) &g_static_pwm_lut[device].periph->CCR2;
+        }
+        case LL_TIM_CHANNEL_CH3: {
+            return (uint32_t) &g_static_pwm_lut[device].periph->CCR3;
+        }
+        case LL_TIM_CHANNEL_CH4: {
+            return (uint32_t) &g_static_pwm_lut[device].periph->CCR4;
+        }
+        default: {
+            return 0;
+        }
+    }
+}
+
+uint32_t PWM_Driver_GetCompareValue (const ePwmDevice_t device) {
+    if ((device < ePwmDevice_First) || (device >= ePwmDevice_Last)) {
+        return 0;
+    }
+
+    if (!g_is_all_device_init) {
+        return 0;
+    }
+
+    if (!g_is_device_enabled[device]) {
+        return 0;
+    }
+
+    if (!LL_TIM_IsEnabledCounter(g_static_pwm_lut[device].periph)) {
+        return 0;
+    }
+
+    uint32_t value = g_static_pwm_lut[device].get_ccr_fp(g_static_pwm_lut[device].periph);
+
+    return value;
 }

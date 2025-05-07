@@ -13,6 +13,8 @@
  * Private definitions and macros
  *********************************************************************************************************************/
 
+#define DEBUG_LED_APP
+
 #define MESSAGE_QUEUE_PRIORITY 0U
 #define MESSAGE_QUEUE_TIMEOUT 0U
 
@@ -24,7 +26,11 @@
  * Private constants
  *********************************************************************************************************************/
 
+#ifdef DEBUG_LED_APP 
 CREATE_MODULE_NAME (LED_APP)
+#else
+CREATE_MODULE_NAME_EMPTY
+#endif
 
 const static osThreadAttr_t g_led_thread_attributes = {
     .name = "LED_APP_Thread",
@@ -250,7 +256,7 @@ static void LED_APP_Thread (void *arg) {
                     break;
                 }
 
-                TRACE_INFO("Pwm Led Brightness %d\n", arguments->led_pin, arguments->duty_cycle);
+                TRACE_INFO("Pwm Led %d Brightness %d\n", arguments->led_pin, arguments->duty_cycle);
 
                 Heap_API_Free(arguments);
             } break;

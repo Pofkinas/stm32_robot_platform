@@ -248,7 +248,7 @@ bool Motor_API_Init (void) {
         }
 
         if (g_dynamic_motor_lut[motor].timer == NULL) {
-            g_dynamic_motor_lut[motor].timer = osTimerNew(g_static_motor_lut[motor].timer_callback, osTimerPeriodic, &g_dynamic_motor_lut[motor], &g_static_motor_lut[motor].timer_attributes);
+            g_dynamic_motor_lut[motor].timer = osTimerNew(g_static_motor_lut[motor].timer_callback, osTimerOnce, &g_dynamic_motor_lut[motor], &g_static_motor_lut[motor].timer_attributes);
         }
 
         if (!Motor_Driver_GetMaxSpeed(g_dynamic_motor_lut[motor].motor, &g_dynamic_motor_lut[motor].max_speed)) {

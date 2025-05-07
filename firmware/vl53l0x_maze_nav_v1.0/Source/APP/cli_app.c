@@ -15,6 +15,8 @@
  * Private definitions and macros
  *********************************************************************************************************************/
 
+#define DEBUG_CLI_APP
+
 #define RESPONSE_MESSAGE_CAPACITY 128
 #define DEFINE_CMD(command_string) .command = command_string, .command_lenght = sizeof(command_string) - 1
 
@@ -26,7 +28,11 @@
  * Private constants
  *********************************************************************************************************************/
 
+#ifdef DEBUG_CLI_APP
 CREATE_MODULE_NAME (CLI_APP)
+#else
+CREATE_MODULE_NAME_EMPTY
+#endif
 
 const static osThreadAttr_t g_cli_thread_attributes = {
     .name = "CLI_APP_Thread",

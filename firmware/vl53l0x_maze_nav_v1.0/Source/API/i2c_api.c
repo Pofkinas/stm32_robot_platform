@@ -5,10 +5,13 @@
 #include "i2c_api.h"
 #include "cmsis_os2.h"
 #include "i2c_driver.h"
+#include "debug_api.h"
 
 /**********************************************************************************************************************
  * Private definitions and macros
  *********************************************************************************************************************/
+
+#define DEBUG_I2C_API
 
 #define SYSTEM_TIMER_DIVIDER 1000000 // timeout in microseconds
 
@@ -29,6 +32,12 @@ typedef struct sI2cDynamicDesc {
 /**********************************************************************************************************************
  * Private constants
  *********************************************************************************************************************/
+
+#ifdef DEBUG_I2C_API
+CREATE_MODULE_NAME (I2C_API)
+#else
+CREATE_MODULE_NAME_EMPTY
+#endif
 
 /* clang-format off */
 static const sI2cStaticDesc_t g_static_i2c_lut[eI2c_Last] = {
@@ -72,16 +81,20 @@ static bool I2C_API_ReadMultiBytes (const eI2cDriver_t i2c, uint8_t *data, const
 static bool I2C_API_IsActiveFlag (const eI2c_t i2c, const eI2cDriver_Flags_t flag, const bool active_state, const uint32_t ticks, const uint32_t timeout) {
     while (I2C_Driver_CheckFlag(g_static_i2c_lut[i2c].i2c_driver, flag) != active_state) {
         if ((osKernelGetSysTimerCount() - ticks) > timeout) {
+            TRACE_ERR("I2C API timeout @ flag: %d\n", flag);
+
             I2C_Driver_StopComms(g_static_i2c_lut[i2c].i2c_driver);
             
             if (I2C_Driver_CheckFlag(g_static_i2c_lut[i2c].i2c_driver, eI2cDriver_Flags_Berr)) {
                 I2C_Driver_ClearFlag(g_static_i2c_lut[i2c].i2c_driver, eI2cDriver_Flags_Berr);
 
                 I2C_Driver_ResetLine(g_static_i2c_lut[i2c].i2c_driver);
+                TRACE_WRN("I2C API Line Reset\n");
             }
 
             if (I2C_Driver_CheckFlag(g_static_i2c_lut[i2c].i2c_driver, eI2cDriver_Flags_Busy)) {
                 I2C_Driver_ResetLine(g_static_i2c_lut[i2c].i2c_driver);
+                TRACE_WRN("I2C API Line Reset\n");
             }
 
             return false;

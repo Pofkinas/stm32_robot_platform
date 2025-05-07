@@ -76,6 +76,10 @@ const static sLedControlDesc_t g_basic_led_control_static_lut[eLedPin_Last] = {
 };
 
 const static sLedPwmControlDesc_t g_pwm_led_control_static_lut[eLedPwmPin_Last] = {
+    // [eLedPwmPin_Test] = {
+    //     .pulse_timer_attributes = {.name = "LED_API_Test_Pulse_Timer", .attr_bits = 0, .cb_mem = NULL, .cb_size = 0},
+    //     .pulse_mutex_attributes = {.name = "LED_API_Test_Pulse_Mutex", .attr_bits = osMutexRecursive | osMutexPrioInherit, .cb_mem = NULL, .cb_size = 0U},
+    // }
     0
 };
 /* clang-format on */
@@ -109,6 +113,21 @@ static sLedBlinkDesc_t g_led_blink_lut[eLedPin_Last] = {
 };
 
 static sLedPulseDesc_t g_led_pulse_lut[eLedPwmPin_Last] = {
+    // [eLedPwmPin_Test] = {
+    //     .led = eLedPwmPin_Test,
+    //     .pwm_device = ePwmDevice_Ws2812b,
+    //     .pulse_timer = NULL,
+    //     .pulse_mutex = NULL,
+    //     .is_running = false,
+    //     .timer_callback = LED_API_Pulse_timer_Callback,
+    //     .count_dir_up = true,
+    //     .duty_cycle_change = 0,
+    //     .total_pulses = 0,
+    //     .total_changes_per_pulse = 0,
+    //     .current_duty_cycle = 0,
+    //     .pulse_count = 0,
+    //     .change_count = 0
+    // }
     0
 };
 /* clang-format on */
@@ -162,7 +181,7 @@ static void LED_API_Pulse_timer_Callback (void *arg) {
 
    osMutexRelease(led_pulse_desc->pulse_mutex);
 
-   PWM_Driver_Change_Duty_Cycle(led_pulse_desc->led, led_pulse_desc->current_duty_cycle);
+   PWM_Driver_Change_Duty_Cycle(led_pulse_desc->pwm_device, led_pulse_desc->current_duty_cycle);
 
    if (led_pulse_desc->change_count >= led_pulse_desc->total_changes_per_pulse) {
        if (led_pulse_desc->count_dir_up) {
@@ -217,6 +236,11 @@ bool LED_API_Init (void) {
         }
     }
 
+    if (eLedPwmPin_Last <= eLedPwmPin_First) {
+        g_is_initialized = true;
+        return true;
+    }
+
     for (eLedPwmPin_t led = eLedPwmPin_First; led < eLedPwmPin_Last; led++) {
         if (g_led_pulse_lut[led].pulse_timer == NULL) {
             g_led_pulse_lut[led].pulse_timer = osTimerNew(g_led_pulse_lut[led].timer_callback, osTimerPeriodic, &g_led_pulse_lut[led], &g_pwm_led_control_static_lut[led].pulse_timer_attributes);
@@ -226,7 +250,7 @@ bool LED_API_Init (void) {
             g_led_pulse_lut[led].pulse_mutex = osMutexNew(&g_pwm_led_control_static_lut[led].pulse_mutex_attributes);
         }
 
-        if (!PWM_Driver_Enable_Device(led)) {
+        if (!PWM_Driver_Enable_Device(g_led_pulse_lut[led].pwm_device)) {
             return false;
         }
     }
@@ -320,7 +344,7 @@ bool LED_API_Set_Brightness (const eLedPwmPin_t led_pin, const uint8_t brightnes
         return false;
     }
 
-    return PWM_Driver_Change_Duty_Cycle(g_led_pulse_lut[led_pin].led, brightness);
+    return PWM_Driver_Change_Duty_Cycle(g_led_pulse_lut[led_pin].pwm_device, brightness);
 }
 
 bool LED_API_Pulse (const eLedPwmPin_t led_pin, const uint8_t pulsing_time, const uint16_t pulse_frequency) {

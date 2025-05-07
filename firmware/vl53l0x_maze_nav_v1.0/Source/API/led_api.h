@@ -32,6 +32,7 @@ typedef enum eLedPin {
 
 typedef enum eLedPwmPin {
     eLedPwmPin_First = 0,
+    // eLedPwmPin_Test = eLedPwmPin_First,
     eLedPwmPin_Last
 } eLedPwmPin_t;
 /* clang-format off */

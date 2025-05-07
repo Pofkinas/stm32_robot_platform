@@ -13,6 +13,8 @@
  * Private definitions and macros
  *********************************************************************************************************************/
 
+//#define DEBUG_VL53L0X_API
+
 #define VL53L0X_DEFAULT_ADDRESS 0x29
 #define SYSTEM_TIMER_DIVIDER 1000 // timeout in miliseconds
 
@@ -56,7 +58,11 @@ typedef struct sVl53l0xDynamicDesc {
  * Private constants
  *********************************************************************************************************************/
 
+#ifdef DEBUG_VL53L0X_API 
 CREATE_MODULE_NAME (VL53L0XV2_API)
+#else
+CREATE_MODULE_NAME_EMPTY
+#endif
 
 /* clang-format off */
 static const sVl53l0xStaticDesc_t g_static_vl53l0x_lut[eVl53l0x_Last] = {

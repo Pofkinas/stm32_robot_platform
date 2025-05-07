@@ -14,6 +14,8 @@
  * Private definitions and macros
  *********************************************************************************************************************/
 
+#define DEBUG_MOTOR_APP
+
 #define MESSAGE_QUEUE_CAPACITY 10
 #define MESSAGE_QUEUE_PRIORITY 0U
 #define MESSAGE_QUEUE_TIMEOUT 0U
@@ -26,7 +28,11 @@
  * Private constants
  *********************************************************************************************************************/
 
+#ifdef DEBUG_MOTOR_APP
 CREATE_MODULE_NAME (Motor_APP)
+#else
+CREATE_MODULE_NAME_EMPTY
+#endif
 
 const static osThreadAttr_t g_motor_thread_attributes = {
     .name = "Motor_APP_Thread",

@@ -19,7 +19,6 @@
 typedef enum eTimerDriver {
     eTimerDriver_First = 0,
     eTimerDriver_TIM3 = eTimerDriver_First,
-    eTimerDriver_TIM4,
     eTimerDriver_TIM10,
     eTimerDriver_Last
 } eTimerDriver_t;
