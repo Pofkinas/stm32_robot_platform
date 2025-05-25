@@ -30,9 +30,11 @@ typedef enum eMotor {
 typedef enum eMotorDirection {
     eMotorDirection_First,
     eMotorDirection_Forward = eMotorDirection_First,
-    eMotorDirection_Backward,
+    eMotorDirection_Reverse,
     eMotorDirection_Right,
     eMotorDirection_Left,
+    eMotorDirection_RightSoft,
+    eMotorDirection_LeftSoft,
     eMotorDirection_Last
 } eMotorDirection_t;
 /* clang-format on */
@@ -48,6 +50,8 @@ typedef enum eMotorDirection {
 bool Motor_API_Init (void);
 bool Motor_API_SetSpeed (const size_t speed, const eMotorDirection_t direction);
 bool Motor_API_StopAllMotors (void);
+bool Motor_API_EnableAllMotors (void);
+bool Motor_API_DisableAllMotors (void);
 bool Motor_API_IsCorrectDirection (const eMotorDirection_t direction);
 bool Motor_API_IsCorrectSpeed (const size_t speed);
 bool Motor_API_IsMotorEnabled (const eMotor_t motor);

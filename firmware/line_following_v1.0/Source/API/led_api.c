@@ -149,7 +149,7 @@ static void LED_API_Blink_Timer_Callback (void *arg) {
     return;
 }
 
-static void LED_API_Pulse_timer_Callback (void *arg) {
+ static void LED_API_Pulse_timer_Callback (void *arg) {
    sLedPulseDesc_t *led_pulse_desc = (sLedPulseDesc_t*) arg;
 
    if (!led_pulse_desc->is_running) {

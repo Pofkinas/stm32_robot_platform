@@ -21,13 +21,7 @@
 /* clang-format off */
 typedef enum eCliCommand {
     eCliCommand_First = 0,
-    eCliCommand_Led_Set = eCliCommand_First,
-    eCliCommand_Led_Reset,
-    eCliCommand_Led_Toggle,
-    eCliCommand_Led_Blink,
-    eCliCommand_Pwm_Led_SetBrightness,
-    eCliCommand_Pwm_Led_Pulse,
-    eCliCommand_Motors_Set,
+    eCliCommand_Motors_Set = eCliCommand_First,
     eCliCommand_Motors_Stop,
     eCliCommand_StartTracker,
     eCliCommand_StopTracker,

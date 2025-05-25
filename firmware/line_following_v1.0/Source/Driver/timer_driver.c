@@ -56,22 +56,6 @@ const static sTimerDesc_t g_static_timer_lut[eTimerDriver_Last] = {
         .set_trigger = LL_TIM_SetTriggerOutput,
         .triger_sync = LL_TIM_TRGO_RESET
     },
-    [eTimerDriver_TIM4] = {
-        .periph = TIM4,
-        .prescaler = 0,
-        .counter_mode = LL_TIM_COUNTERMODE_UP,
-        .auto_reload = 65535,
-        .clock_division = LL_TIM_CLOCKDIVISION_DIV1,
-        .enable_clock_fp = LL_APB1_GRP1_EnableClock,
-        .clock = LL_APB1_GRP1_PERIPH_TIM4,
-        .clock_source_fp = LL_TIM_SetClockSource,
-        .clock_source = LL_TIM_CLOCKSOURCE_INTERNAL,
-        .enable_interupt = false,
-        .auto_relead_preload_fp = LL_TIM_DisableARRPreload,
-        .master_slave_mode_fp = LL_TIM_DisableMasterSlaveMode,
-        .set_trigger = LL_TIM_SetTriggerOutput,
-        .triger_sync = LL_TIM_TRGO_RESET
-    },
     [eTimerDriver_TIM10] = {
         .periph = TIM10,
         .prescaler = 999,
@@ -98,7 +82,6 @@ static bool g_is_all_timers_init = false;
 /* clang-format off */
 static bool g_is_counter_enable[eTimerDriver_Last] = {
     [eTimerDriver_TIM3] = false,
-    [eTimerDriver_TIM4] = false,
     [eTimerDriver_TIM10] = false,
 };
 /* clang-format on */
@@ -184,7 +167,7 @@ bool Timer_Driver_Start (const eTimerDriver_t timer) {
         g_is_counter_enable[timer] = true;
     }
 
-    return g_is_counter_enable[timer];
+    return true;
 }
 
 bool Timer_Driver_Stop (const eTimerDriver_t timer) {
@@ -199,10 +182,12 @@ bool Timer_Driver_Stop (const eTimerDriver_t timer) {
     if (g_is_counter_enable[timer]) {
         LL_TIM_DisableCounter(g_static_timer_lut[timer].periph);
 
+        LL_TIM_SetCounter(g_static_timer_lut[timer].periph, 0);
+
         g_is_counter_enable[timer] = false;
     }
 
-    return g_is_counter_enable[timer];
+    return true;
 }
 
 uint16_t Timer_Driver_GetResolution (const eTimerDriver_t timer) {

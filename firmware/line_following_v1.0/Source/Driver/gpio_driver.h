@@ -26,7 +26,8 @@ typedef enum eGpioPin {
     eGpioPin_MotorA_A2,
     eGpioPin_MotorB_A1,
     eGpioPin_MotorB_A2,
-    eGpioPin_Tcrt5000,
+    eGpioPin_Tcrt5000_Right,
+    eGpioPin_Tcrt5000_Left,
     eGpioPin_I2c1_SCL,
     eGpioPin_I2c1_SDA,
     eGpioPin_Last
@@ -45,6 +46,6 @@ bool GPIO_Driver_InitAllPins (void);
 bool GPIO_Driver_WritePin (const eGpioPin_t gpio_pin, const bool pin_state);
 bool GPIO_Driver_ReadPin (const eGpioPin_t gpio_pin, bool *pin_state);
 bool GPIO_Driver_TogglePin (const eGpioPin_t gpio_pin);
-bool GPIO_Driver_SetPinMode (const eGpioPin_t gpio_pin, const uint32_t mode);
+bool GPIO_Driver_ResetPin (const eGpioPin_t gpio_pin);
 
 #endif /* SOURCE_DRIVER_GPIO_DRIVER_H_ */

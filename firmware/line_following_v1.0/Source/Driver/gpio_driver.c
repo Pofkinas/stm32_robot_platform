@@ -45,7 +45,7 @@ const static sGpioDesc_t g_static_gpio_lut[eGpioPin_Last] = {
         .port = GPIOC,
         .pin = LL_GPIO_PIN_0,
         .mode = LL_GPIO_MODE_INPUT,
-        .speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
+        .speed = LL_GPIO_SPEED_FREQ_LOW,
         .pull = LL_GPIO_PULL_NO,
         .output = LL_GPIO_OUTPUT_PUSHPULL,
         .clock = LL_AHB1_GRP1_PERIPH_GPIOC,
@@ -111,35 +111,25 @@ const static sGpioDesc_t g_static_gpio_lut[eGpioPin_Last] = {
         .clock = LL_AHB1_GRP1_PERIPH_GPIOB,
         .alternate = LL_GPIO_AF_2
     },
-    [eGpioPin_Tcrt5000] = {
+    [eGpioPin_Tcrt5000_Right] = {
         .port = GPIOC,
         .pin = LL_GPIO_PIN_1,
         .mode = LL_GPIO_MODE_INPUT,
-        .speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
+        .speed = LL_GPIO_SPEED_FREQ_MEDIUM,
         .pull = LL_GPIO_PULL_NO,
         .output = LL_GPIO_OUTPUT_PUSHPULL,
         .clock = LL_AHB1_GRP1_PERIPH_GPIOC,
         .alternate = LL_GPIO_AF_0
     },
-    [eGpioPin_I2c1_SCL] = {
-        .port = GPIOB,
-        .pin = LL_GPIO_PIN_8,
-        .mode = LL_GPIO_MODE_ALTERNATE,
-        .speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
-        .pull = LL_GPIO_PULL_UP,
-        .output = LL_GPIO_OUTPUT_OPENDRAIN,
-        .clock = LL_AHB1_GRP1_PERIPH_GPIOB,
-        .alternate = LL_GPIO_AF_4
-    },
-    [eGpioPin_I2c1_SDA] = {
-        .port = GPIOB,
-        .pin = LL_GPIO_PIN_9,
-        .mode = LL_GPIO_MODE_ALTERNATE,
-        .speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
-        .pull = LL_GPIO_PULL_UP,
-        .output = LL_GPIO_OUTPUT_OPENDRAIN,
-        .clock = LL_AHB1_GRP1_PERIPH_GPIOB,
-        .alternate = LL_GPIO_AF_4
+    [eGpioPin_Tcrt5000_Left] = {
+        .port = GPIOA,
+        .pin = LL_GPIO_PIN_6,
+        .mode = LL_GPIO_MODE_INPUT,
+        .speed = LL_GPIO_SPEED_FREQ_MEDIUM,
+        .pull = LL_GPIO_PULL_NO,
+        .output = LL_GPIO_OUTPUT_PUSHPULL,
+        .clock = LL_AHB1_GRP1_PERIPH_GPIOA,
+        .alternate = LL_GPIO_AF_0
     }
 };
 /* clang-format on */
@@ -246,12 +236,14 @@ bool GPIO_Driver_TogglePin (const eGpioPin_t gpio_pin) {
     return true;
 }
 
-bool GPIO_Driver_SetPinMode (const eGpioPin_t gpio_pin, const uint32_t mode) {
+bool GPIO_Driver_ResetPin (const eGpioPin_t gpio_pin) {
     if ((gpio_pin < eGpioPin_First) || (gpio_pin >= eGpioPin_Last)) {
         return false;
     }
 
-    LL_GPIO_SetPinMode(g_static_gpio_lut[gpio_pin].port, g_static_gpio_lut[gpio_pin].pin, mode);
+    LL_GPIO_SetPinMode(g_static_gpio_lut[gpio_pin].port, g_static_gpio_lut[gpio_pin].pin, LL_GPIO_MODE_OUTPUT);
+    LL_GPIO_ResetOutputPin(g_static_gpio_lut[gpio_pin].port, g_static_gpio_lut[gpio_pin].pin);
+    LL_GPIO_SetPinMode(g_static_gpio_lut[gpio_pin].port, g_static_gpio_lut[gpio_pin].pin, g_static_gpio_lut[gpio_pin].mode);
 
     return true;
 }

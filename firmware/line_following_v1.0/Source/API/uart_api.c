@@ -48,7 +48,7 @@ typedef struct sUartDynamic {
  *********************************************************************************************************************/
 
 const static osThreadAttr_t g_fsm_thread_attributes = {
-    .name = "FSM_Thread",
+    .name = "UART_API_Thread",
     .stack_size = 256 * 8,
     .priority = (osPriority_t) osPriorityNormal
 };

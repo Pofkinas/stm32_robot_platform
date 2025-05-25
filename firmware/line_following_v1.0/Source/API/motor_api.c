@@ -17,14 +17,17 @@
 #define INPUT_MIN_SPEED 0
 #define INPUT_MAX_SPEED 100
 #define MUTEX_TIMEOUT 0U
-#define STARTUP_TIMER_PERIOD 25U
 
 #define MOTOR_RIGHT_SPEED_OFFSET 0
 #define MOTOR_LEFT_SPEED_OFFSET 4
 
 #define MIN_SCALLED_SPEED 78
 #define MAX_SCALLED_SPEED 92
-#define STARTUP_SPEED 235
+//#define STARTUP_SPEED 235
+#define SOFT_TURN_SPEED_OFFSET 20
+
+#define MOTOR_SOFT_START_STEPS 10
+#define MOTOR_SOFT_START_TIMER_PERIOD 2U
 
 /**********************************************************************************************************************
  * Private typedef
@@ -49,7 +52,10 @@ typedef struct sMotorDynamic {
     uint16_t max_speed;
     eMotorDirection_t direction;
     osMutexId_t mutex;
-    osTimerId_t timer;
+    bool is_soft_start_running;
+    osTimerId_t soft_start_timer;
+    size_t step_value;
+    uint8_t soft_start_step;
 } sMotorDynamic_t;
 
 /**********************************************************************************************************************
@@ -69,17 +75,21 @@ const static sMotorsRotation_t g_static_motor_rotation_lut[eMotor_Last] = {
     [eMotor_Right] = {
         .rotation = {
             [eMotorDirection_Forward] = eMotorRotation_Forward,
-            [eMotorDirection_Backward] = eMotorRotation_Backward,
+            [eMotorDirection_Reverse] = eMotorRotation_Backward,
             [eMotorDirection_Right] =  eMotorRotation_Backward,
-            [eMotorDirection_Left] = eMotorRotation_Forward
+            [eMotorDirection_Left] = eMotorRotation_Forward,
+            [eMotorDirection_RightSoft] = eMotorRotation_Forward,
+            [eMotorDirection_LeftSoft] = eMotorRotation_Forward
         }
     },
     [eMotor_Left] = {
         .rotation = {
             [eMotorDirection_Forward] = eMotorRotation_Forward,
-            [eMotorDirection_Backward] = eMotorRotation_Backward,
+            [eMotorDirection_Reverse] = eMotorRotation_Backward,
             [eMotorDirection_Right] = eMotorRotation_Forward,
-            [eMotorDirection_Left] = eMotorRotation_Backward
+            [eMotorDirection_Left] = eMotorRotation_Backward,
+            [eMotorDirection_RightSoft] = eMotorRotation_Forward,
+            [eMotorDirection_LeftSoft] = eMotorRotation_Forward
         }
 
     }
@@ -117,7 +127,9 @@ static sMotorDynamic_t g_dynamic_motor_lut[eMotor_Last] = {
         .max_speed = 0,
         .direction = eMotorDirection_Last,
         .mutex = NULL,
-        .timer = NULL
+        .is_soft_start_running = false,
+        .soft_start_timer= NULL,
+        .soft_start_step = 1,
     },
     [eMotor_Left] = {
         .motor = eMotorDriver_B,
@@ -127,7 +139,9 @@ static sMotorDynamic_t g_dynamic_motor_lut[eMotor_Last] = {
         .max_speed = 0,
         .direction = eMotorDirection_Last,
         .mutex = NULL,
-        .timer = NULL
+        .is_soft_start_running = false,
+        .soft_start_timer = NULL,
+        .soft_start_step = 1,
     }
 };
 /* clang-format on */
@@ -185,8 +199,8 @@ static bool Motor_API_SetMotorSpeed (const eMotor_t motor, const size_t speed, c
                 return false;
             }
         } break;
-        case eMotorDirection_Backward: {
-            if (!Motor_Driver_SetSpeed(g_dynamic_motor_lut[motor].motor, g_static_motor_rotation_lut[motor].rotation[eMotorDirection_Backward], speed)) {
+        case eMotorDirection_Reverse: {
+            if (!Motor_Driver_SetSpeed(g_dynamic_motor_lut[motor].motor, g_static_motor_rotation_lut[motor].rotation[eMotorDirection_Reverse], speed)) {
                 return false;
             }
         } break;
@@ -212,7 +226,22 @@ static bool Motor_API_SetMotorSpeed (const eMotor_t motor, const size_t speed, c
 static void Motor_API_Statup_TimerCallback (void *arg) {
     sMotorDynamic_t *motor_desc = (sMotorDynamic_t*) arg;
 
-    Motor_API_SetMotorSpeed(motor_desc->motor, motor_desc->speed, motor_desc->direction);
+    uint16_t speed = motor_desc->step_value * motor_desc->soft_start_step;
+
+    Motor_API_SetMotorSpeed(motor_desc->motor, speed, motor_desc->direction);
+
+    motor_desc->soft_start_step++;
+
+    if (motor_desc->soft_start_step >= MOTOR_SOFT_START_STEPS) {
+        if (motor_desc->speed > speed) {
+            Motor_API_SetMotorSpeed(motor_desc->motor, motor_desc->speed, motor_desc->direction);
+        }
+
+        motor_desc->soft_start_step = 1;
+        motor_desc->is_soft_start_running = false;
+
+        osTimerStop(motor_desc->soft_start_timer);
+    }
 
     return;
 }
@@ -247,8 +276,8 @@ bool Motor_API_Init (void) {
             g_dynamic_motor_lut[motor].mutex = osMutexNew(&g_static_motor_lut[motor].mutex_attributes);
         }
 
-        if (g_dynamic_motor_lut[motor].timer == NULL) {
-            g_dynamic_motor_lut[motor].timer = osTimerNew(g_static_motor_lut[motor].timer_callback, osTimerPeriodic, &g_dynamic_motor_lut[motor], &g_static_motor_lut[motor].timer_attributes);
+        if (g_dynamic_motor_lut[motor].soft_start_timer == NULL) {
+            g_dynamic_motor_lut[motor].soft_start_timer = osTimerNew(g_static_motor_lut[motor].timer_callback, osTimerPeriodic, &g_dynamic_motor_lut[motor], &g_static_motor_lut[motor].timer_attributes);
         }
 
         if (!Motor_Driver_GetMaxSpeed(g_dynamic_motor_lut[motor].motor, &g_dynamic_motor_lut[motor].max_speed)) {
@@ -279,9 +308,25 @@ bool Motor_API_SetSpeed (const size_t speed, const eMotorDirection_t direction) 
             g_dynamic_motor_lut[motor].is_enabled = true;
         }
 
+        if (g_dynamic_motor_lut[motor].is_soft_start_running) {
+            return false;
+        }
+
+        if (osMutexAcquire(g_dynamic_motor_lut[motor].mutex, MUTEX_TIMEOUT) != osOK) {
+            return false;
+        }
+
         g_dynamic_motor_lut[motor].new_speed = Motor_API_Scale_Speed(motor, speed);
 
+        if (direction == eMotorDirection_RightSoft && motor == eMotor_Left) {
+            g_dynamic_motor_lut[motor].new_speed -= SOFT_TURN_SPEED_OFFSET;
+        } else if (direction == eMotorDirection_LeftSoft && motor == eMotor_Right) {
+            g_dynamic_motor_lut[motor].new_speed -= SOFT_TURN_SPEED_OFFSET;
+        }
+
         if (g_dynamic_motor_lut[motor].new_speed == g_dynamic_motor_lut[motor].speed && g_dynamic_motor_lut[motor].direction == direction) {
+            osMutexRelease(g_dynamic_motor_lut[motor].mutex);
+            
             continue;
         }
 
@@ -294,18 +339,20 @@ bool Motor_API_SetSpeed (const size_t speed, const eMotorDirection_t direction) 
         g_dynamic_motor_lut[motor].direction = direction;
 
         if (g_dynamic_motor_lut[motor].speed == STOP_SPEED) {
-            if (!Motor_API_SetMotorSpeed(motor, STARTUP_SPEED, g_dynamic_motor_lut[motor].direction)) {
-                return false;
-            }
+            g_dynamic_motor_lut[motor].soft_start_step = 1;
+            g_dynamic_motor_lut[motor].step_value = g_dynamic_motor_lut[motor].new_speed / MOTOR_SOFT_START_STEPS;
+            g_dynamic_motor_lut[motor].is_soft_start_running = true;
+        }
 
-            osTimerStart(g_dynamic_motor_lut[motor].timer, STARTUP_TIMER_PERIOD);
+        osMutexRelease(g_dynamic_motor_lut[motor].mutex);
+
+        if (g_dynamic_motor_lut[motor].speed == STOP_SPEED) {
+            osTimerStart(g_dynamic_motor_lut[motor].soft_start_timer, MOTOR_SOFT_START_TIMER_PERIOD);
         } else {
             if (!Motor_API_SetMotorSpeed(motor, g_dynamic_motor_lut[motor].new_speed, g_dynamic_motor_lut[motor].direction)) {
                 return false;
             }
         }
-
-        // TODO: Make ramp function with timer
 
         g_dynamic_motor_lut[motor].speed = g_dynamic_motor_lut[motor].new_speed;
     }
@@ -324,6 +371,22 @@ bool Motor_API_StopAllMotors (void) {
         if (!Motor_Driver_SetSpeed(g_dynamic_motor_lut[motor].motor, g_static_motor_rotation_lut[motor].rotation[eMotorDirection_Forward], g_dynamic_motor_lut[motor].speed)) {
             return false;
         }
+    }
+
+    return true;
+}
+
+bool Motor_API_EnableAllMotors (void) {
+    for (eMotor_t motor = eMotor_First; motor < eMotor_Last; motor++) {
+        if (Motor_API_IsMotorEnabled(motor)) {
+            continue;
+        }
+
+        if (!Motor_Driver_EnableMotor(motor)) {
+            return false;
+        }
+
+        g_dynamic_motor_lut[motor].is_enabled = true;
     }
 
     return true;

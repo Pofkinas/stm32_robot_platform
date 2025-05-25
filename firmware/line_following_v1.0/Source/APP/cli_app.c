@@ -15,6 +15,8 @@
  * Private definitions and macros
  *********************************************************************************************************************/
 
+#define DEBUG_CLI_APP
+
 #define RESPONSE_MESSAGE_CAPACITY 128
 #define DEFINE_CMD(command_string) .command = command_string, .command_lenght = sizeof(command_string) - 1
 
@@ -26,7 +28,11 @@
  * Private constants
  *********************************************************************************************************************/
 
+#ifdef DEBUG_CLI_APP
 CREATE_MODULE_NAME (CLI_APP)
+#else
+CREATE_MODULE_NAME_EMPTY
+#endif
 
 const static osThreadAttr_t g_cli_thread_attributes = {
     .name = "CLI_APP_Thread",
@@ -48,32 +54,6 @@ static sMessage_t g_response = {.data = g_response_buffer, .size = RESPONSE_MESS
 
 /* clang-format off */
 static sCmdDesc_t g_static_cli_lut[eCliCommand_Last] = {
-    [eCliCommand_Led_Set] = {
-        DEFINE_CMD("led_set:"),
-        .handler = CLI_APP_Led_Handlers_Set
-    },
-    [eCliCommand_Led_Reset] = {
-        DEFINE_CMD("led_reset:"),
-        .handler = CLI_APP_Led_Handlers_Reset
-    },
-    [eCliCommand_Led_Toggle] = {
-        DEFINE_CMD("led_toggle:"),
-        .handler = CLI_APP_Led_Handlers_Toggle
-    },
-    [eCliCommand_Led_Blink] = {
-        DEFINE_CMD("led_blink:"),
-        .handler = CLI_APP_Led_Handlers_Blink
-    },
-    [eCliCommand_Pwm_Led_SetBrightness] = {
-        DEFINE_CMD("led_setb:"),
-        //.handler = CLI_APP_Pwm_Led_Handlers_Set_Brightness
-        .handler = NULL
-    },
-    [eCliCommand_Pwm_Led_Pulse] = {
-        DEFINE_CMD("led_pulse:"),
-        //.handler = CLI_APP_Pwm_Led_Handlers_Pulse
-        .handler = NULL
-    },
     [eCliCommand_Motors_Set] = {
         DEFINE_CMD("motors_set:"),
         .handler = CLI_APP_Motors_Handlers_Set

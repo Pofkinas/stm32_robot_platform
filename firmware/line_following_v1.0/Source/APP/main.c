@@ -12,7 +12,6 @@
 #include "stm32f4xx_ll_usart.h"
 #include "usart.h"
 #include "cli_app.h"
-#include "led_app.h"
 #include "motor_app.h"
 #include "tracker_app.h"
 #include "debug_api.h"
@@ -23,6 +22,8 @@
  * Private definitions and macros
  *********************************************************************************************************************/
 
+#define DEBUG_MAIN
+
 /**********************************************************************************************************************
  * Private typedef
  *********************************************************************************************************************/
@@ -31,7 +32,11 @@
  * Private constants
  *********************************************************************************************************************/
 
+#ifdef DEBUG_MAIN
 CREATE_MODULE_NAME (MAIN)
+#else
+CREATE_MODULE_NAME_EMPTY
+#endif
 
 /**********************************************************************************************************************
  * Private variables
@@ -123,7 +128,6 @@ int main (void) {
     Timer_Driver_InitAllTimers();
     Timer_Driver_Start(eTimerDriver_TIM10);
 
-    LED_APP_Init();
     Motor_APP_Init();
     Tracker_APP_Init();
     CLI_APP_Init(eUartBaudrate_115200);

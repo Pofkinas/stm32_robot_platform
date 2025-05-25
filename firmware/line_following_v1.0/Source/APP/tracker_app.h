@@ -10,20 +10,21 @@
  * Exported definitions and macros
  *********************************************************************************************************************/
 
-#define TRACKER_COMMAND_MESSAGE_CAPACITY 20
+#define TRACKER_COMMAND_MESSAGE_CAPACITY 10
 
 /**********************************************************************************************************************
  * Exported types
  *********************************************************************************************************************/
 
 /* clang-format off */
-typedef enum  eTrackerTask {
+typedef enum eTrackerTask {
     eTrackerTask_First = 0,
-    eTrackerTask_Collect = eTrackerTask_First,
+    eTrackerTask_Off = eTrackerTask_First,
+    eTrackerTask_Init,
+    eTrackerTask_Collect,
     eTrackerTask_Start,
+    eTrackerTask_UpdateCourse,
     eTrackerTask_Stop,
-    eTrackerTask_FallowLine,
-    eTrackerTask_SearchLine,
     eTrackerTask_Last
 } eTrackerTask_t;
 /* clang-format on */

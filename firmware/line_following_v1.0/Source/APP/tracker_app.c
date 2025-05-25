@@ -3,11 +3,11 @@
  *********************************************************************************************************************/
 
 #include "tracker_app.h"
+#include "tracker_app.h"
 #include "cmsis_os2.h"
 #include "heap_api.h"
 #include "debug_api.h"
-#include "button_api.h"
-#include "tcrt5000_api.h"
+#include "io_api.h"
 #include "motor_api.h"
 #include "led_api.h"
 
@@ -15,18 +15,43 @@
  * Private definitions and macros
  *********************************************************************************************************************/
 
+#define DEBUG_TRACKER_APP
+
 #define MESSAGE_QUEUE_PRIORITY 0U
 #define MESSAGE_QUEUE_TIMEOUT 0U
+
+#define BUTTON_FLAG_TIMEOUT 0U
+#define TCRT5000_FLAG_TIMEOUT 1U
+
+#define CHANGE_DIRECTION_DELAY 10
 
 /**********************************************************************************************************************
  * Private typedef
  *********************************************************************************************************************/
- 
+
+typedef enum eTcrt5000 {
+    eTcrt5000_First = 0,
+    eTcrt5000_Right = eTcrt5000_First,
+    eTcrt5000_Left,
+    eTcrt5000_Last
+} eTcrt5000_t;
+
+typedef struct sTcrt5000Data {
+    eIo_t device;
+    uint32_t event_flag;
+    bool is_tiggered;
+    bool pin_state;
+} sTcrt5000Data_t;
+
 /**********************************************************************************************************************
  * Private constants
  *********************************************************************************************************************/
 
+#ifdef DEBUG_TRACKER_APP
 CREATE_MODULE_NAME (Tracker_APP)
+#else
+CREATE_MODULE_NAME_EMPTY
+#endif
 
 const static osThreadAttr_t g_tracker_thread_attributes = {
     .name = "Tracker_APP_Thread",
@@ -43,19 +68,52 @@ const static osMessageQueueAttr_t g_tracker_message_queue_attributes = {
     .mq_size = 0
 };
 
+const static osEventFlagsAttr_t g_start_button_event_attributes = {
+    .name = "Start_Button_Event",
+    .attr_bits = 0,
+    .cb_mem = NULL,
+    .cb_size = 0
+};
+
+const static osEventFlagsAttr_t g_tcrt5000_event_attributes = {
+    .name = "Tcrt5000_Event",
+    .attr_bits = 0,
+    .cb_mem = NULL,
+    .cb_size = 0
+};
+
 /**********************************************************************************************************************
  * Private variables
  *********************************************************************************************************************/
 
 static bool g_is_initialized = false;
 
-static eTrackerTask_t g_tracker_task = eTrackerTask_Collect;
-static eTrackerTask_t g_previous_task = eTrackerTask_Stop;
+static eTrackerTask_t g_tracker_task = eTrackerTask_Off;
+static eMotorDirection_t g_course = eMotorDirection_First;
+static eMotorDirection_t g_last_course = eMotorDirection_First;
 
 static osThreadId_t g_tracker_thread_id = NULL;
 static osMessageQueueId_t g_tracker_message_queue_id = NULL;
 
-static sTcrt5000Data_t g_hw006_data[eTcrt5000_Last] = {0};
+static osEventFlagsId_t g_start_button_event = NULL;
+static osEventFlagsId_t g_tcrt5000_event = NULL;
+
+/* clang-format off */
+static sTcrt5000Data_t g_tcrt5000_data[eTcrt5000_Last] = {
+    [eTcrt5000_Right] = {
+        .device = eIo_Tcrt5000_Right,
+        .event_flag = TCRT5000_RIGHT_TRIGGERED_EVENT,
+        .is_tiggered = false,
+        .pin_state = false
+    },
+    [eTcrt5000_Left] = {
+        .device = eIo_Tcrt5000_Left,
+        .event_flag = TCRT5000_LEFT_TRIGGERED_EVENT,
+        .is_tiggered = false,
+        .pin_state = false
+    }
+};
+/* clang-format on */
 
 /**********************************************************************************************************************
  * Exported variables and references
@@ -66,7 +124,7 @@ static sTcrt5000Data_t g_hw006_data[eTcrt5000_Last] = {0};
  *********************************************************************************************************************/
 
 static void Tracker_APP_Thread (void* arg);
-static bool Tracker_APP_Process_Tcrt5000 (sTcrt5000Data_t data, eTrackerTask_t *task);
+static eMotorDirection_t Tracker_APP_Process_Tcrt5000 (void);
 
 /**********************************************************************************************************************
  * Definitions of private functions
@@ -76,54 +134,48 @@ static void Tracker_APP_Thread (void* arg) {
     while(1) {
         osMessageQueueGet(g_tracker_message_queue_id, &g_tracker_task, MESSAGE_QUEUE_PRIORITY, MESSAGE_QUEUE_TIMEOUT);
 
+        if (g_tracker_task != eTrackerTask_Init) {
+            if (osEventFlagsWait(g_start_button_event, STARTSTOP_TRIGGERED_EVENT, osFlagsWaitAny, BUTTON_FLAG_TIMEOUT) == STARTSTOP_TRIGGERED_EVENT) {
+                TRACE_INFO("Stop button\n");
+                
+                g_tracker_task = eTrackerTask_Stop;
+            }
+        }
+
         switch (g_tracker_task) {
-            case eTrackerTask_Collect: {
-                if (Button_API_IsTriggered(eButton_StartStop)) {
-                    Button_API_ClearState(eButton_StartStop);
-                    
-                    if (g_previous_task == eTrackerTask_Stop) {
-                        g_tracker_task = eTrackerTask_Start;
-
-                        break;
-                    } else {
-                        g_tracker_task = eTrackerTask_Stop;
-
-                        break;
-                    }
-                }
-
-                if (Tcrt5000_API_GetData(g_hw006_data)) {
-                    Tracker_APP_Process_Tcrt5000(*g_hw006_data, &g_tracker_task);
+            case eTrackerTask_Init: {
+                if (!Motor_API_StopAllMotors()) {
+                    TRACE_ERR("Failed to stop all motors\n");
 
                     break;
                 }
-            } break;
+                
+                if (osEventFlagsWait(g_start_button_event, STARTSTOP_TRIGGERED_EVENT, osFlagsWaitAny, osWaitForever) != STARTSTOP_TRIGGERED_EVENT) {
+                    TRACE_ERR("Failed to to receive start button flag\n");
+                    
+                    break;
+                }
+
+                g_tracker_task = eTrackerTask_Collect;
+            }
             case eTrackerTask_Start: {
                 TRACE_INFO("Current task: Start\n");
 
-                if (!Tcrt5000_API_ReadPinState(eTcrt5000_Main, &g_hw006_data[eTcrt5000_Main].pin_state)) {
+                if (!IO_API_ReadPinState(g_tcrt5000_data[eTcrt5000_First].device, &g_tcrt5000_data[eTcrt5000_First].pin_state)) {
                     TRACE_ERR("Failed Tcrt5000 ReadPin\n");
 
-                    g_tracker_task = eTrackerTask_Collect;
+                    g_tracker_task = eTrackerTask_Init;
 
                     break;
                 }
 
-                if (!g_hw006_data[eTcrt5000_Main].pin_state) {
-                    TRACE_WRN("No line detected at start\n");
+                // if (g_tcrt5000_data[eTcrt5000_First].pin_state) {
+                //     TRACE_WRN("No line detected at start\n");
 
-                    g_tracker_task = eTrackerTask_Collect;
+                //     g_tracker_task = eTrackerTask_Init;
 
-                    break;
-                }
-
-                if (!Motor_API_SetSpeed(STOP_SPEED, eMotorDirection_Forward)) {
-                    TRACE_ERR("Failed Motor Set Speed\n");
-
-                    g_tracker_task = eTrackerTask_Collect;
-
-                    break;
-                }
+                //     break;
+                // }
 
                 if (!LED_API_TurnOn(eLedPin_OnboardLed)) {
                     TRACE_ERR("Failed Led Turn On\n");
@@ -133,77 +185,85 @@ static void Tracker_APP_Thread (void* arg) {
                     break;
                 }
 
-                if (!Tcrt5000_API_Enable()) {
-                    TRACE_ERR("Failed Tcrt5000 Enable\n");
+                 if (!Motor_API_SetSpeed(DEFAULT_MOTOR_SPEED, eMotorDirection_Forward)) {
+                     TRACE_ERR("Failed Motor Set Speed\n");
 
-                    g_tracker_task = eTrackerTask_Stop;
+                     g_tracker_task = eTrackerTask_Init;
 
-                    break;
-                }
+                     break;
+                 }
 
-                g_tracker_task = eTrackerTask_FallowLine;
-            }
-            case eTrackerTask_FallowLine: {
-                TRACE_INFO("Current task: FallowLine\n");
-
-                if (!Motor_API_StopAllMotors()) {
-                    TRACE_ERR("Failed Motor Stop\n");
-
-                    g_tracker_task = eTrackerTask_Collect;
-
-                    break;
-                }
-
-                if (!Motor_API_SetSpeed(DEFAULT_MOTOR_SPEED, eMotorDirection_Forward)) {
-                    TRACE_ERR("Failed Motor Set Speed\n");
-
-                    g_tracker_task = eTrackerTask_Collect;
-
-                    break;
-                }
-
-                g_previous_task = eTrackerTask_FallowLine;
+                g_last_course = eMotorDirection_Forward;
                 g_tracker_task = eTrackerTask_Collect;
+            }
+            case eTrackerTask_Collect: {
+                bool data_received = false;
+                
+                for (eTcrt5000_t device = eTcrt5000_First; device < eTcrt5000_Last; device++) {
+                    if (g_tcrt5000_data[device].is_tiggered) {
+                        data_received = true;
+
+                        continue;
+                    }
+
+                    if (osEventFlagsWait(g_tcrt5000_event, g_tcrt5000_data[device].event_flag, osFlagsWaitAny, TCRT5000_FLAG_TIMEOUT) == g_tcrt5000_data[device].event_flag) {
+                        if (!IO_API_ReadPinState(g_tcrt5000_data[device].device, &g_tcrt5000_data[device].pin_state)) {
+                            TRACE_ERR("Failed Tcrt5000 ReadPin\n");
+
+                            g_tracker_task = eTrackerTask_Init;
+
+                            break;
+                        }
+
+                        g_tcrt5000_data[device].is_tiggered = true;
+                    }
+                }
+
+                if (data_received) {
+                    g_course = Tracker_APP_Process_Tcrt5000();
+                    g_tracker_task = eTrackerTask_UpdateCourse;
+                }
             } break;
-            case eTrackerTask_SearchLine: {
-                TRACE_INFO("Current task: SearchLine\n");
+            case eTrackerTask_UpdateCourse: {
+                TRACE_INFO("Current task: Update course [%d]\n", g_course);
 
-                if (!Motor_API_StopAllMotors()) {
-                    TRACE_ERR("Failed Motor Stop\n");
-
-                    g_tracker_task = eTrackerTask_Collect;
-
-                    break;
-                }
-
-                if (!Motor_API_SetSpeed(MOTOR_SEARCH_SPEED, eMotorDirection_Left)) {
-                    TRACE_ERR("Failed Motor Set Speed\n");
+                if ((g_course < eMotorDirection_First) || (g_course >= eMotorDirection_Last)) {
+                    TRACE_ERR("Invalid course direction\n");
 
                     g_tracker_task = eTrackerTask_Collect;
 
                     break;
                 }
 
-                // TODO: Make "Start Led Blinking"
+                if (((g_course == eMotorDirection_Forward) || (g_course == eMotorDirection_Reverse)) && ((g_last_course == eMotorDirection_Forward) || (g_last_course == eMotorDirection_Reverse))) {
+                    if (!Motor_API_StopAllMotors()) {
+                        TRACE_ERR("Failed Motor Stop\n");
 
-                g_previous_task = eTrackerTask_SearchLine;
+                        g_tracker_task = eTrackerTask_Collect;
+
+                        break;
+                    }
+
+                    osDelay(CHANGE_DIRECTION_DELAY);
+                }
+
+                 if (!Motor_API_SetSpeed(DEFAULT_MOTOR_SPEED, g_course)) {
+                     TRACE_ERR("Failed Motor Set Speed\n");
+
+                     g_tracker_task = eTrackerTask_Collect;
+
+                     break;
+                 }
+
                 g_tracker_task = eTrackerTask_Collect;
             } break;
             case eTrackerTask_Stop: {
                 TRACE_INFO("Current task: Stop\n");
 
-                if (!Tcrt5000_API_Disable()) {
-                    TRACE_ERR("Failed Tcrt5000 Disable\n");
-
-                    g_tracker_task = eTrackerTask_Collect;
-
-                    break;
-                }
-
                 if (!Motor_API_StopAllMotors()) {
                     TRACE_ERR("Failed Motor Stop\n");
 
-                    g_tracker_task = eTrackerTask_Collect;
+                    g_tracker_task = eTrackerTask_Init;
 
                     break;
                 }
@@ -211,13 +271,12 @@ static void Tracker_APP_Thread (void* arg) {
                 if (!LED_API_TurnOff(eLedPin_OnboardLed)) {
                     TRACE_ERR("Failed Led Turn On\n");
 
-                    g_tracker_task = eTrackerTask_Collect;
+                    g_tracker_task = eTrackerTask_Init;
 
                     break;
                 }
 
-                g_previous_task = eTrackerTask_Stop;
-                g_tracker_task = eTrackerTask_Collect;
+                g_tracker_task = eTrackerTask_Init;
             } break;
             default: {
             } break;
@@ -227,37 +286,43 @@ static void Tracker_APP_Thread (void* arg) {
     osThreadYield();
 }
 
-bool Tracker_APP_Process_Tcrt5000 (sTcrt5000Data_t data, eTrackerTask_t *task) {
-    if (task == NULL) {
-        return false;
-    }
-
-    switch (data.device) {
-        case eTcrt5000_Main: {
-            if (!data.is_tiggered) {
-                return false;
-            }
-
-            Tcrt5000_API_ClearTrigger(data.device);
-
-            if (!data.pin_state && (g_previous_task != eTrackerTask_SearchLine)) {
-                *task = eTrackerTask_SearchLine;
-
-                return true;
-            }
+static eMotorDirection_t Tracker_APP_Process_Tcrt5000 (void) { 
+    if ((g_tcrt5000_data[eTcrt5000_Right].is_tiggered && g_tcrt5000_data[eTcrt5000_Left].is_tiggered)) {
+        g_tcrt5000_data[eTcrt5000_Right].is_tiggered = false;
+        g_tcrt5000_data[eTcrt5000_Left].is_tiggered = false;
+        
+        if (g_tcrt5000_data[eTcrt5000_Right].pin_state && g_tcrt5000_data[eTcrt5000_Left].pin_state) {
+            g_last_course = g_course;
             
-            if (data.pin_state && (g_previous_task != eTrackerTask_FallowLine)) {
-                *task = eTrackerTask_FallowLine;
+            return eMotorDirection_Forward;
+        } else {
+            g_last_course = g_course;
 
-                return true;
-            }
-        } break;
-        default: {
-            return false;
-        } break;
+            return eMotorDirection_Reverse;
+        }
     }
 
-    return true;
+    if (g_tcrt5000_data[eTcrt5000_Right].is_tiggered) {
+        g_tcrt5000_data[eTcrt5000_Right].is_tiggered = false;
+
+        if (g_tcrt5000_data[eTcrt5000_Right].pin_state) {
+            return eMotorDirection_Forward;
+        } else {
+            return eMotorDirection_LeftSoft;
+        }
+    }
+
+    if (g_tcrt5000_data[eTcrt5000_Left].is_tiggered) {
+        g_tcrt5000_data[eTcrt5000_Left].is_tiggered = false;
+
+        if (g_tcrt5000_data[eTcrt5000_Left].pin_state) {
+            return eMotorDirection_Forward;
+        } else {
+            return eMotorDirection_RightSoft;
+        }
+    }
+
+    return eMotorDirection_Last;
 }
 
 /**********************************************************************************************************************
@@ -267,14 +332,6 @@ bool Tracker_APP_Process_Tcrt5000 (sTcrt5000Data_t data, eTrackerTask_t *task) {
 bool Tracker_APP_Init (void) {
     if (g_is_initialized) {
         return true;
-    }
-
-    if (!Button_API_Init()) {
-        return false;
-    }
-
-    if (!Tcrt5000_API_Init()) {
-        return false;
     }
  
     if (!Motor_API_Init()) {
@@ -293,7 +350,37 @@ bool Tracker_APP_Init (void) {
         g_tracker_thread_id = osThreadNew(Tracker_APP_Thread, NULL, &g_tracker_thread_attributes);
     }
 
+    if (g_start_button_event == NULL) {
+        g_start_button_event = osEventFlagsNew(&g_start_button_event_attributes);
+    }
+
+    if (g_tcrt5000_event == NULL) {
+        g_tcrt5000_event = osEventFlagsNew(&g_tcrt5000_event_attributes);
+    }
+
+    if (!IO_API_Init(eIo_StartStopButton, g_start_button_event)) {
+        TRACE_ERR("Failed to initialize StartStopButton\n");
+
+        return false;
+    }
+
+    for (eTcrt5000_t device = eTcrt5000_First; device < eTcrt5000_Last; device++) {
+        if (!IO_API_Init(g_tcrt5000_data[device].device, g_tcrt5000_event)) {
+            TRACE_ERR("Failed to initialize Tcrt5000 %d\n", device);
+
+            return false;
+        }
+    }
+
+    if (!Motor_API_EnableAllMotors()) {
+        TRACE_ERR("Failed to enable all motors\n");
+
+        return false;
+    }
+
     g_is_initialized = true;
+
+    g_tracker_task = eTrackerTask_Init;
 
     return g_is_initialized;
 }
