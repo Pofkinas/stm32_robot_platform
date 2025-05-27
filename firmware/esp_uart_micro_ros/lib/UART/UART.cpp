@@ -27,17 +27,18 @@ void UART::Init() {
         .parity = UART_PARITY_DISABLE,
         .stop_bits = UART_STOP_BITS_1,
         .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
-        .source_clk = UART_SCLK_DEFAULT
+        .source_clk = UART_SCLK_REF_TICK
     };
 
     ESP_ERROR_CHECK(uart_param_config(uart_num, &uart_config));
 
     ESP_ERROR_CHECK(uart_set_pin(UART_NUM_2, UART_PIN_NO_CHANGE, RXD_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
+    uart_driver_delete(uart_num);
 
     ESP_ERROR_CHECK(uart_driver_install(uart_num, UART2_RX_BUFFER_SIZE, UART2_TX_BUFFER_SIZE, 0, NULL, 0));
 }
 
-void UART::Receive(uint8_t *data, const size_t length, const TickType_t timeout) {
+bool UART::Receive(uint8_t *data, const size_t length, const TickType_t timeout) {
     if (data == NULL || length == 0) {
         return false;
     }

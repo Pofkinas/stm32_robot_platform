@@ -1,30 +1,29 @@
+#include <Arduino.h>
 #include <stdio.h>
 
-#include "uart.h"
-#include "ros_communication.h"
+#include "UART.h"
+#include "uROS_Comms.h"
 
-main_loop();
+UART uart;
+uRosComms rosComm;
 
-void main () {
-    UART uart;
+void main_loop();
+
+void setup () {
     uart.Init();
-
-    uRosComm rosComm;
     rosComm.Init();
-
-    main_loop();
 }
 
-void main_loop() {
-    char *data[2];
-    size_t length = 2;
+void loop () {
+    uint8_t data;
+    size_t length = 1;
     TickType_t timeout = 100 / portTICK_PERIOD_MS;
 
     while (1) {
-        if (uart.Receive(data, length, timeout)) {
-            bool sensor_data = atoi(data[0]);
-
-            rosComm.PublishSensorData(sensor_data);
+        if (uart.Receive(&data, length, timeout)) {
+            rosComm.Publish(data);
         }
+
+        delay(100);
     }
 }
