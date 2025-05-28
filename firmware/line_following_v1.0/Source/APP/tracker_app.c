@@ -10,6 +10,10 @@
 #include "io_api.h"
 #include "motor_api.h"
 #include "led_api.h"
+#include "heap_api.h"
+#include "uart_api.h"
+#include "message.h"
+#include "uart_baudrate.h"
 
 /**********************************************************************************************************************
  * Private definitions and macros
@@ -24,6 +28,11 @@
 #define TCRT5000_FLAG_TIMEOUT 1U
 
 #define CHANGE_DIRECTION_DELAY 10
+
+#define UROS_UART eUart_uRos
+#define UROS_UART_BAUDRATE eUartBaudrate_115200
+#define UROS_UART_DELIMITER "\r\n"
+#define UROS_UART_TIMEOUT 50U
 
 /**********************************************************************************************************************
  * Private typedef
@@ -89,7 +98,8 @@ const static osEventFlagsAttr_t g_tcrt5000_event_attributes = {
 static bool g_is_initialized = false;
 
 static eTrackerTask_t g_tracker_task = eTrackerTask_Off;
-static eMotorDirection_t g_course = eMotorDirection_First;
+static eMotorDirection_t g_course = eMotorDirection_Last;
+static sMessage_t g_tracker_message = {.data = (char*) &g_course, .size = 1};
 static eMotorDirection_t g_last_course = eMotorDirection_First;
 
 static osThreadId_t g_tracker_thread_id = NULL;
@@ -125,6 +135,7 @@ static sTcrt5000Data_t g_tcrt5000_data[eTcrt5000_Last] = {
 
 static void Tracker_APP_Thread (void* arg);
 static eMotorDirection_t Tracker_APP_Process_Tcrt5000 (void);
+static bool Tracker_APP_UpdateSpeed (const eMotorDirection_t course);
 
 /**********************************************************************************************************************
  * Definitions of private functions
@@ -142,6 +153,8 @@ static void Tracker_APP_Thread (void* arg) {
             }
         }
 
+        UART_API_Send(UROS_UART, g_tracker_message, UROS_UART_TIMEOUT);
+
         switch (g_tracker_task) {
             case eTrackerTask_Init: {
                 if (!Motor_API_StopAllMotors()) {
@@ -149,6 +162,8 @@ static void Tracker_APP_Thread (void* arg) {
 
                     break;
                 }
+
+                g_course = eMotorDirection_Last;
                 
                 if (osEventFlagsWait(g_start_button_event, STARTSTOP_TRIGGERED_EVENT, osFlagsWaitAny, osWaitForever) != STARTSTOP_TRIGGERED_EVENT) {
                     TRACE_ERR("Failed to to receive start button flag\n");
@@ -185,13 +200,13 @@ static void Tracker_APP_Thread (void* arg) {
                     break;
                 }
 
-                 if (!Motor_API_SetSpeed(DEFAULT_MOTOR_SPEED, eMotorDirection_Forward)) {
-                     TRACE_ERR("Failed Motor Set Speed\n");
+                g_course = eMotorDirection_First;
 
-                     g_tracker_task = eTrackerTask_Init;
+                if (!Tracker_APP_UpdateSpeed(g_course)) {
+                    g_tracker_task = eTrackerTask_Init;
 
-                     break;
-                 }
+                    break;
+                }
 
                 g_last_course = eMotorDirection_Forward;
                 g_tracker_task = eTrackerTask_Collect;
@@ -247,13 +262,11 @@ static void Tracker_APP_Thread (void* arg) {
                     osDelay(CHANGE_DIRECTION_DELAY);
                 }
 
-                 if (!Motor_API_SetSpeed(DEFAULT_MOTOR_SPEED, g_course)) {
-                     TRACE_ERR("Failed Motor Set Speed\n");
+                if (!Tracker_APP_UpdateSpeed(g_course)) {
+                    g_tracker_task = eTrackerTask_Init;
 
-                     g_tracker_task = eTrackerTask_Collect;
-
-                     break;
-                 }
+                    break;
+                }
 
                 g_tracker_task = eTrackerTask_Collect;
             } break;
@@ -325,6 +338,20 @@ static eMotorDirection_t Tracker_APP_Process_Tcrt5000 (void) {
     return eMotorDirection_Last;
 }
 
+static bool Tracker_APP_UpdateSpeed (const eMotorDirection_t course) {
+    if ((course < eMotorDirection_First) || (course >= eMotorDirection_Last)) {
+        return false;
+    }
+
+//    if (!Motor_API_SetSpeed(DEFAULT_MOTOR_SPEED, course)) {
+//        TRACE_ERR("Failed to set motor speed\n");
+//
+//        return false;
+//    }
+
+    return true;
+}
+
 /**********************************************************************************************************************
  * Definitions of exported functions
  *********************************************************************************************************************/
@@ -339,6 +366,14 @@ bool Tracker_APP_Init (void) {
     }
 
     if (!LED_API_Init()) {
+        return false;
+    }
+
+    if (!Heap_API_Init()) {
+        return false;
+    }
+
+    if (!UART_API_Init (UROS_UART, UROS_UART_BAUDRATE, UROS_UART_DELIMITER)) {
         return false;
     }
 

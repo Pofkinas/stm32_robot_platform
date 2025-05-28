@@ -71,6 +71,16 @@ const static sGpioDesc_t g_static_gpio_lut[eGpioPin_Last] = {
         .clock = LL_AHB1_GRP1_PERIPH_GPIOA,
         .alternate = LL_GPIO_AF_7
     },
+    [eGpioPin_uRosTx] = {
+        .port = GPIOA,
+        .pin = LL_GPIO_PIN_9,
+        .mode = LL_GPIO_MODE_ALTERNATE,
+        .speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
+        .pull = LL_GPIO_PULL_NO,
+        .output = LL_GPIO_OUTPUT_PUSHPULL,
+        .clock = LL_AHB1_GRP1_PERIPH_GPIOA,
+        .alternate = LL_GPIO_AF_7
+    },
     [eGpioPin_MotorA_A1] = {
         .port = GPIOB,
         .pin = LL_GPIO_PIN_4,

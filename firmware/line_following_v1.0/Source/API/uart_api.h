@@ -24,6 +24,7 @@
 typedef enum eUart {
     eUart_First = 0,
     eUart_Debug = eUart_First,
+    eUart_uRos,
     eUart_Last
 } eUart_t;
 /* clang-format on */

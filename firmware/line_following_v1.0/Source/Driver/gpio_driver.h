@@ -22,6 +22,7 @@ typedef enum eGpioPin {
     eGpioPin_StartButton,
     eGpioPin_DebugTx,
     eGpioPin_DebugRx,
+    eGpioPin_uRosTx,
     eGpioPin_MotorA_A1,
     eGpioPin_MotorA_A2,
     eGpioPin_MotorB_A1,

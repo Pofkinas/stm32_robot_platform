@@ -21,6 +21,7 @@
 typedef enum eUartDriver {
     eUartDriver_First = 0,
     eUartDriver_1 = eUartDriver_First,
+    eUartDriver_2,
     eUartDriver_Last
 } eUartDriver_t;
 /* clang-format on */

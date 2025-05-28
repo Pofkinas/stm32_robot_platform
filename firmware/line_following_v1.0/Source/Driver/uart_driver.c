@@ -12,6 +12,7 @@
  *********************************************************************************************************************/
 
 #define UART2_RING_BUFFER_CAPACITY 256
+#define UART1_RING_BUFFER_CAPACITY 64
 
 /**********************************************************************************************************************
  * Private typedef
@@ -33,7 +34,8 @@ typedef struct sUartDesc {
 } sUartDesc_t;
 
 RingBuffer_Handle g_ring_buffer[eUartDriver_Last] = {
-    [eUartDriver_1] = NULL
+    [eUartDriver_1] = NULL,
+    [eUartDriver_2] = NULL
 };
 
 /**********************************************************************************************************************
@@ -55,6 +57,20 @@ const static sUartDesc_t g_static_uart_lut[eUartDriver_Last] = {
         .enable_clock_fp = LL_APB1_GRP1_EnableClock,
         .nvic = USART2_IRQn,
         .ring_buffer_capacity = UART2_RING_BUFFER_CAPACITY
+    },
+    [eUartDriver_2] = {
+        .periph = USART1,
+        .baud = 115200,
+        .data_bits = LL_USART_DATAWIDTH_8B,
+        .stop_bits = LL_USART_STOPBITS_1,
+        .parity = LL_USART_PARITY_NONE,
+        .direction = LL_USART_DIRECTION_TX,
+        .flow_control = LL_USART_HWCONTROL_NONE,
+        .oversample = LL_USART_OVERSAMPLING_16,
+        .clock = LL_APB2_GRP1_PERIPH_USART1,
+        .enable_clock_fp = LL_APB2_GRP1_EnableClock,
+        .nvic = USART1_IRQn,
+        .ring_buffer_capacity = UART1_RING_BUFFER_CAPACITY
     }
 };
 
@@ -84,6 +100,7 @@ const static uint32_t g_static_baudrate_lut[eUartBaudrate_Last] = {
  *********************************************************************************************************************/
 
 static void UARTx_ISRHandler (const eUartDriver_t uart);
+void USART1_IRQHandler (void);
 void USART2_IRQHandler (void);
 
 /**********************************************************************************************************************
@@ -106,6 +123,10 @@ static void UARTx_ISRHandler (const eUartDriver_t uart) {
     Ring_Buffer_Push(g_ring_buffer[uart], LL_USART_ReceiveData8(g_static_uart_lut[uart].periph));
     
     return;
+}
+
+void USART1_IRQHandler (void) {
+    UARTx_ISRHandler(eUartDriver_2);
 }
 
 void USART2_IRQHandler (void) {

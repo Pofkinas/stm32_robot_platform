@@ -12,6 +12,7 @@
  *********************************************************************************************************************/
 
 #define UART2_BUFFER_CAPACITY 256
+#define UART1_BUFFER_CAPACITY 64
 #define MESSAGE_QUEUE_PRIORITY 0U
 #define MESSAGE_QUEUE_PUT_TIMEOUT 0U
 
@@ -59,6 +60,11 @@ const static sUartConst_t g_static_uart_lut[eUart_Last] = {
         .queue_capacity = UART2_BUFFER_CAPACITY,
         .mutex_send_attributes = {.name = "Debug_SendMutex", .attr_bits = osMutexRecursive | osMutexPrioInherit, .cb_mem = NULL, .cb_size = 0U},
         .message_queue_attributes = {.name = "Debug_MessageQueue", .attr_bits = 0, .cb_mem = NULL, .cb_size = 0, .mq_mem = NULL, .mq_size = 0}
+    },
+    [eUart_uRos] = {
+        .queue_capacity = UART1_BUFFER_CAPACITY,
+        .mutex_send_attributes = {.name = "uRos_SendMutex", .attr_bits = osMutexRecursive | osMutexPrioInherit, .cb_mem = NULL, .cb_size = 0U},
+        .message_queue_attributes = {.name = "uRos_MessageQueue", .attr_bits = 0, .cb_mem = NULL, .cb_size = 0, .mq_mem = NULL, .mq_size = 0}
     }
 };
 /* clang-format on */
@@ -72,6 +78,15 @@ static osThreadId_t g_fsm_thread_id = NULL;
 /* clang-format off */
 static sUartDynamic_t g_dynamic_uart_lut[eUart_Last] = {
     [eUart_Debug] = {
+        .current_state = eState_Setup,
+        .is_initialized = false,
+        .mutex_send = NULL,
+        .message_queue = NULL,
+        .message = {.data = NULL, .size = 0},
+        .delimiter = NULL,
+        .delimiter_length = 0
+    },
+    [eUart_uRos] = {
         .current_state = eState_Setup,
         .is_initialized = false,
         .mutex_send = NULL,
@@ -102,7 +117,7 @@ static void UART_API_BufferIncrement (const eUart_t uart);
 static void UART_API_FsmThread (void *arg) {
     while (1) {
         for (eUart_t uart = eUart_First; uart < eUart_Last; uart++) {
-            if (g_dynamic_uart_lut[uart].is_initialized == false) {
+            if (!g_dynamic_uart_lut[uart].is_initialized) {
                 continue;
             }
 
@@ -120,12 +135,12 @@ static void UART_API_FsmThread (void *arg) {
                 case eState_Collect: {
                     uint8_t received_byte = 0;
 
-                    while (UART_Driver_ReceiveByte(uart, &received_byte) == true) {
+                    while (UART_Driver_ReceiveByte(uart, &received_byte)) {
                         g_dynamic_uart_lut[uart].message.data[g_dynamic_uart_lut[uart].message.size] = received_byte;
 
                         UART_API_BufferIncrement(uart);
 
-                        if (UART_API_IsDelimiterReceived(uart) == false) {
+                        if (!UART_API_IsDelimiterReceived(uart)) {
                             continue;
                         }
 
@@ -196,11 +211,11 @@ bool UART_API_Init (const eUart_t uart, const eUartBaudrate_t baudrate, const ch
         return false;
     }
 
-    if (g_dynamic_uart_lut[uart].is_initialized == true) {
+    if (g_dynamic_uart_lut[uart].is_initialized) {
         return false;
     }
     
-    if (UART_Driver_Init(uart, baudrate) == false) {
+    if (!UART_Driver_Init(uart, baudrate)) {
         return false;
     }
 
@@ -238,6 +253,10 @@ bool UART_API_Send (const eUart_t uart, const sMessage_t message, const uint32_t
     if ((uart < eUart_First) || (uart >= eUart_Last)) {
         return false;
     }
+
+    if (!g_dynamic_uart_lut[uart].is_initialized) {
+        return false;
+    }
     
     if (osMutexAcquire(g_dynamic_uart_lut[uart].mutex_send, timeout) != osOK) {
         return false;
@@ -256,6 +275,10 @@ bool UART_API_Send (const eUart_t uart, const sMessage_t message, const uint32_t
 
 bool UART_API_Receive (const eUart_t uart, sMessage_t *message, const uint32_t timeout) {
     if ((uart < eUart_First) || (uart >= eUart_Last)) {
+        return false;
+    }
+
+    if (!g_dynamic_uart_lut[uart].is_initialized) {
         return false;
     }
 
