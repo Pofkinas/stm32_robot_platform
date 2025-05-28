@@ -1,12 +1,12 @@
 #pragma Once
 
+#include <stdint.h>
+
 class uRosComms {
     public:
         uRosComms();
         void Init();
         void Receive();
-        void Publish(const bool sensor_status);
+        void Publish(const uint8_t sensor_status);
     private:
-        static float linear_vel;
-        static float angular_vel;
 };

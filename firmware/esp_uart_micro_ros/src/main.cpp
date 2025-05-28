@@ -17,13 +17,13 @@ void setup () {
 void loop () {
     uint8_t data;
     size_t length = 1;
-    TickType_t timeout = 100 / portTICK_PERIOD_MS;
+    TickType_t timeout = 10;
 
     while (1) {
         if (uart.Receive(&data, length, timeout)) {
+            // Serial.print("Received data: ");
+            // Serial.println(data);
             rosComm.Publish(data);
         }
-
-        delay(100);
     }
 }

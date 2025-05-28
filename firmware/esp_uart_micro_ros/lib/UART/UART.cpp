@@ -30,11 +30,9 @@ void UART::Init() {
         .source_clk = UART_SCLK_REF_TICK
     };
 
-    ESP_ERROR_CHECK(uart_param_config(uart_num, &uart_config));
-
-    ESP_ERROR_CHECK(uart_set_pin(UART_NUM_2, UART_PIN_NO_CHANGE, RXD_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
     uart_driver_delete(uart_num);
-
+    ESP_ERROR_CHECK(uart_param_config(uart_num, &uart_config));
+    ESP_ERROR_CHECK(uart_set_pin(uart_num, UART_PIN_NO_CHANGE, RXD_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
     ESP_ERROR_CHECK(uart_driver_install(uart_num, UART2_RX_BUFFER_SIZE, UART2_TX_BUFFER_SIZE, 0, NULL, 0));
 }
 
@@ -43,7 +41,18 @@ bool UART::Receive(uint8_t *data, const size_t length, const TickType_t timeout)
         return false;
     }
 
+    uart_flush_input(uart_num);
+
     int32_t read_bytes = uart_read_bytes(uart_num, data, length, timeout);
 
-    return (read_bytes < 0);
+    if (read_bytes < 0) {
+        // Serial.print("UART read error: ");
+        // Serial.println(read_bytes);
+        return false;
+    } else if (read_bytes == 0) {
+        // Serial.println("UART read timeout: no data received.");
+        return false;
+    }
+
+    return true;
 }

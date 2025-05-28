@@ -1,6 +1,5 @@
 #include "uROS_Comms.h"
 
-#include <WiFi.h>  // Add this at the top of the file
 #include <Arduino.h>
 #include <rcl/rcl.h>
 #include <rcl/error_handling.h>
@@ -8,14 +7,14 @@
 #include <rclc/executor.h>
 #include <micro_ros_platformio.h>
 
-#include <std_msgs/msg/bool.h>
+#include <std_msgs/msg/u_int8.h>
 #include <geometry_msgs/msg/twist.h>
 //#include <std_msgs/msg/header.h>
 
 rcl_publisher_t sensor_publisher;
 // rcl_subscription_t cmd_vel_subscriber;
 
-std_msgs__msg__Bool sensor_data;
+std_msgs__msg__UInt8 sensor_data;
 //geometry_msgs__msg__Twist cmd_vel_msg;
 
 rcl_node_t node;
@@ -54,8 +53,8 @@ void uRosComms::Init (){
     IPAddress agent_ip(172, 20, 10, 5);
     uint16_t agent_port = 8888;
 
-    char ssid[] = "Povilas iPhone";
-    char password[] = "atspek123";
+    char ssid[] = "";
+    char password[] = "";
 
     set_microros_wifi_transports(ssid, password, agent_ip, agent_port);
 
@@ -70,7 +69,7 @@ void uRosComms::Init (){
     RCCHECK(rclc_node_init_default(&node, "robot_node", "", &support));
 
     //RCCHECK(rclc_subscription_init_default(&cmd_vel_subscriber, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist), "/cmd_vel"));
-    RCCHECK(rclc_publisher_init_default(&sensor_publisher, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Bool), "/sensor_data"));
+    RCCHECK(rclc_publisher_init_default(&sensor_publisher, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, UInt8), "/sensor_data"));
 
     //RCCHECK(rclc_executor_init(&executor, &support.context, 1, &allocator));
     //RCCHECK(rclc_executor_add_subscription(&executor, &cmd_vel_subscriber, &cmd_vel_msg, &uRosComms::CMD_Vel_Callback, ON_NEW_DATA));
@@ -78,14 +77,10 @@ void uRosComms::Init (){
 
 void uRosComms::Receive (){
     //RCCHECK(rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100)));
-    
-    delay(100);
 }
 
-void uRosComms::Publish (const bool sensor_status) {
+void uRosComms::Publish (const uint8_t sensor_status) {
     sensor_data.data = sensor_status;
 
     RCSOFTCHECK(rcl_publish(&sensor_publisher, (const void*) &sensor_data, NULL));
-
-    delay(100);
 }
