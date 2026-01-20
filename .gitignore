@@ -5,6 +5,7 @@
 !LICENSE
 !README.md
 !.gitignore
+!.gitmodules
 
 # Allow dictories
 !hardware/
@@ -13,3 +14,6 @@
 !hardware/3d_print_parts/**
 !hardware/3d_print_parts/Gearbox
 !hardware/3d_print_parts/Gearbox/**
+
+!stm32/
+!stm32/**

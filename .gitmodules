@@ -1,0 +1,4 @@
+[submodule "stm32/Framework"]
+	path = stm32/Framework
+	url = https://github.com/Pofkinas/pdf.git
+	branch = feature/project_config
