@@ -19,3 +19,22 @@
 !stm32/**
 
 stm32/Debug/
+
+!esp32/
+!esp32/data/
+!esp32/data/**
+!esp32/include/
+!esp32/include/**
+!esp32/lib/
+!esp32/lib/**
+!esp32/src/
+!esp32/src/**
+!esp32/CMakeLists.txt
+!esp32/dependencies.lock
+!esp32/partitions.csv
+!esp32/platformio.ini
+!esp32/sdkconfig.esp32dev
+
+esp32/.pio/
+esp32/build/
+esp32/.vscode/
