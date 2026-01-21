@@ -15,6 +15,9 @@
 !hardware/3d_print_parts/Gearbox
 !hardware/3d_print_parts/Gearbox/**
 
+!docs/
+!docs/**
+
 !stm32/
 !stm32/**
 
